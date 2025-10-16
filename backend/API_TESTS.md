@@ -114,20 +114,92 @@ curl -X POST http://localhost:3000/api/auth/logout \
 
 ---
 
+## Super Admin - Empresas (Implementado ✅)
+
+### Listar Empresas
+```bash
+curl -X GET http://localhost:3000/api/superadmin/empresas \
+  -H "Authorization: Bearer SEU_TOKEN"
+```
+
+### Criar Empresa
+```bash
+curl -X POST http://localhost:3000/api/superadmin/empresas \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome_cliente": "Nova Empresa LTDA",
+    "cnpj": "11.222.333/0001-44",
+    "email_contato": "contato@novaempresa.com",
+    "telefone": "(11) 99999-8888",
+    "status": "ativa"
+  }'
+```
+
+### Atualizar Empresa
+```bash
+curl -X PUT http://localhost:3000/api/superadmin/empresas/1 \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome_cliente": "Empresa Demo LTDA - Atualizada",
+    "status": "ativa"
+  }'
+```
+
+### Deletar Empresa
+```bash
+curl -X DELETE http://localhost:3000/api/superadmin/empresas/1 \
+  -H "Authorization: Bearer SEU_TOKEN"
+```
+
+## Super Admin - Instâncias (Implementado ✅)
+
+### Listar Instâncias
+```bash
+curl -X GET "http://localhost:3000/api/superadmin/instancias?id_empresa=1" \
+  -H "Authorization: Bearer SEU_TOKEN"
+```
+
+### Criar Instância (com admin inicial)
+```bash
+curl -X POST http://localhost:3000/api/superadmin/instancias \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id_empresa": 1,
+    "nome_instancia": "Nova Instância",
+    "descricao": "Descrição da instância",
+    "limite_usuarios": 25,
+    "status": "ativa",
+    "admin_inicial": {
+      "nome_completo": "Admin Novo",
+      "email": "admin.novo@empresa.com",
+      "senha": "Admin@123456"
+    }
+  }'
+```
+
+### Atualizar Instância
+```bash
+curl -X PUT http://localhost:3000/api/superadmin/instancias/1 \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "limite_usuarios": 60,
+    "status": "ativa"
+  }'
+```
+
+### Estatísticas da Instância
+```bash
+curl -X GET http://localhost:3000/api/superadmin/instancias/1/estatisticas \
+  -H "Authorization: Bearer SEU_TOKEN"
+```
+
+---
+
 ## Próximos Endpoints a Implementar
-
-### Super Admin
-- [ ] GET /api/superadmin/empresas
-- [ ] POST /api/superadmin/empresas
-- [ ] GET /api/superadmin/empresas/:id
-- [ ] PUT /api/superadmin/empresas/:id
-- [ ] DELETE /api/superadmin/empresas/:id
-
-- [ ] GET /api/superadmin/instancias
-- [ ] POST /api/superadmin/instancias
-- [ ] GET /api/superadmin/instancias/:id
-- [ ] PUT /api/superadmin/instancias/:id
-- [ ] DELETE /api/superadmin/instancias/:id
 
 ### Admin Cliente
 - [ ] GET /api/admin/equipes
