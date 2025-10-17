@@ -226,10 +226,46 @@ async function handleMensagemSelecionada(mensagem) {
 <style scoped>
 .chat-container {
   width: 100%;
-  height: 100vh;
+  height: calc(100vh - 70px);
   display: flex;
   flex-direction: column;
   background-color: #fff;
+}
+
+@media (max-width: 768px) {
+  .chat-container {
+    height: calc(100vh - 60px);
+  }
+
+  .sidebar {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    background-color: #fff;
+  }
+
+  .sidebar.hidden-mobile {
+    display: none;
+  }
+
+  .main-chat {
+    width: 100%;
+  }
+
+  .chat-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .chat-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .btn-nova-conversa,
+  .btn-busca {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
+  }
 }
 
 .chat-header {
@@ -293,8 +329,9 @@ async function handleMensagemSelecionada(mensagem) {
 
 .sidebar {
   width: 300px;
+  min-width: 250px;
   border-right: 1px solid #e0e0e0;
-  background-color: #f9f9f9;
+  background-color: #fff;
   overflow-y: auto;
 }
 

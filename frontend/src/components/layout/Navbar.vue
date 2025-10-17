@@ -68,6 +68,39 @@ function formatarRole(role) {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  min-height: 70px;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0.75rem 1rem;
+    min-height: 60px;
+  }
+
+  .navbar-brand .logo {
+    font-size: 1.2rem;
+  }
+
+  .navbar-menu {
+    gap: 1rem;
+  }
+
+  .navbar-links {
+    gap: 0.75rem;
+  }
+
+  .nav-link {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .user-role {
+    font-size: 0.75rem;
+  }
 }
 
 .navbar-brand .logo {

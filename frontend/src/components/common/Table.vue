@@ -71,7 +71,19 @@ function getValue(item, key) {
 
 .table {
   width: 100%;
+  min-width: 600px;
   border-collapse: collapse;
+}
+
+@media (max-width: 768px) {
+  .table {
+    min-width: 100%;
+    font-size: 0.9rem;
+  }
+
+  th, td {
+    padding: 0.75rem 0.5rem;
+  }
 }
 
 thead {
@@ -82,13 +94,24 @@ th {
   padding: 1rem;
   text-align: left;
   font-weight: 600;
-  color: #495057;
+  color: #333;
+  background-color: #f8f9fa;
   border-bottom: 2px solid #dee2e6;
 }
 
 td {
   padding: 1rem;
   border-bottom: 1px solid #dee2e6;
+  color: #212529;
+  background-color: #fff;
+}
+
+tbody tr {
+  background-color: #fff;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f8f9fa;
 }
 
 tbody tr:hover {
