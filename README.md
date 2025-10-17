@@ -75,6 +75,22 @@ A documentação completa do projeto está organizada em ordem de leitura:
 
 **📖 Guia Completo:** [02-COMO_RODAR.md](./02-COMO_RODAR.md)
 
+### **🎨 Novo: Widget Embarcável**
+
+Integre o chat em sistemas legados com apenas 2 linhas:
+
+```html
+<script src="https://chat.empresa.com/chat-widget.js"></script>
+<script>
+  ChatWidget.init({
+    token: 'SEU_JWT_TOKEN',
+    apiUrl: 'http://localhost:3000'
+  });
+</script>
+```
+
+**📖 Documentação:** [WIDGET_INTEGRATION.md](./WIDGET_INTEGRATION.md)
+
 ### Instalação Rápida (5 minutos)
 
 ```bash
