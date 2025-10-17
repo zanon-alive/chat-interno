@@ -50,17 +50,56 @@ Desenvolver uma plataforma de comunicação interna que permite:
 
 ## 📚 Documentação
 
-A documentação completa do projeto está organizada da seguinte forma:
+A documentação completa do projeto está organizada em ordem de leitura:
 
-- **[REQUISITOS.md](./docs/REQUISITOS.md)** - Requisitos funcionais e não funcionais detalhados
-- **[ARQUITETURA.md](./docs/ARQUITETURA.md)** - Arquitetura do sistema e decisões técnicas
+### **Documentos Principais (Raiz):**
+1. **[01-START_HERE.md](./01-START_HERE.md)** ⭐ - Comece aqui! (5 min)
+2. **[02-COMO_RODAR.md](./02-COMO_RODAR.md)** - Instruções passo a passo (10 min)
+3. **[03-ENTREGA_FINAL.md](./03-ENTREGA_FINAL.md)** - Documento de entrega
+4. **[04-DESENVOLVIMENTO_COMPLETO.md](./04-DESENVOLVIMENTO_COMPLETO.md)** - Relatório técnico
+5. **[05-MELHORIAS_IMPLEMENTADAS.md](./05-MELHORIAS_IMPLEMENTADAS.md)** - Melhorias recentes
+6. **[06-RELATORIO_COMPLETO_FINAL.md](./06-RELATORIO_COMPLETO_FINAL.md)** - Relatório consolidado
+7. **[07-RESUMO_DESENVOLVIMENTO.md](./07-RESUMO_DESENVOLVIMENTO.md)** - Resumo técnico
+8. **[08-PROGRESSO.md](./08-PROGRESSO.md)** - Status por fase
+9. **[09-DECISOES_TECNICAS.md](./09-DECISOES_TECNICAS.md)** - Decisões e revisões
+10. **[10-CHECKLIST_PROJETO.md](./10-CHECKLIST_PROJETO.md)** - Checklist completo
+
+### **Documentos Técnicos (docs/):**
+- **[REQUISITOS.md](./docs/REQUISITOS.md)** - Requisitos funcionais e não funcionais
+- **[ARQUITETURA.md](./docs/ARQUITETURA.md)** - Arquitetura do sistema
 - **[MODELO_DADOS.md](./docs/MODELO_DADOS.md)** - Estrutura do banco de dados
-- **[FASES_DESENVOLVIMENTO.md](./docs/FASES_DESENVOLVIMENTO.md)** - Planejamento e cronograma
-- **[GUIA_DESENVOLVIMENTO.md](./docs/GUIA_DESENVOLVIMENTO.md)** - Instruções para desenvolvedores
+- **[FASES_DESENVOLVIMENTO.md](./docs/FASES_DESENVOLVIMENTO.md)** - Planejamento
+- **[GUIA_DESENVOLVIMENTO.md](./docs/GUIA_DESENVOLVIMENTO.md)** - Manual do desenvolvedor
 
 ## 🚀 Quick Start
 
-**📖 Guia Completo:** [COMO_RODAR.md](./COMO_RODAR.md)
+**📖 Guia Completo:** [02-COMO_RODAR.md](./02-COMO_RODAR.md)
+
+### **🎨 Novo: Widget Embarcável**
+
+Integre o chat em sistemas legados com apenas 2 linhas:
+
+```html
+<script src="https://chat.empresa.com/chat-widget.js"></script>
+<script>
+  ChatWidget.init({
+    token: 'SEU_JWT_TOKEN',
+    apiUrl: 'http://localhost:3000'
+  });
+</script>
+```
+
+**🧪 Testar Widget:**
+```bash
+./testar-widget.sh
+# Ou: bash testar-widget.sh
+# Abrirá: http://localhost:8080/exemplo-dashboard.html
+```
+
+**📖 Documentação:** 
+- [WIDGET_INTEGRATION.md](./WIDGET_INTEGRATION.md) - Guia de integração
+- [TESTE_WIDGET.md](./TESTE_WIDGET.md) - Guia de testes
+- [13-WIDGET_EMBARCAVEL.md](./13-WIDGET_EMBARCAVEL.md) - Documentação técnica
 
 ### Instalação Rápida (5 minutos)
 

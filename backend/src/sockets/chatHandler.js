@@ -73,17 +73,21 @@ module.exports = (io, socket) => {
   /**
    * Enviar mensagem
    */
-  socket.on('message:send', async (data) => {
+  socket.on('message:send', async (data, callback) => {
     try {
       const { conversaId, conteudo } = data;
       const { userId, instanciaId } = socket;
 
       // Validar conteúdo
       if (!conteudo || conteudo.trim().length === 0) {
+        const erro = { error: 'Mensagem vazia' };
+        if (callback) callback(erro);
         return socket.emit('error', { mensagem: 'Mensagem vazia' });
       }
 
       if (conteudo.length > 5000) {
+        const erro = { error: 'Mensagem muito longa (máximo 5000 caracteres)' };
+        if (callback) callback(erro);
         return socket.emit('error', { mensagem: 'Mensagem muito longa (máximo 5000 caracteres)' });
       }
 
@@ -97,6 +101,8 @@ module.exports = (io, socket) => {
       });
 
       if (!participante) {
+        const erro = { error: 'Você não é participante desta conversa' };
+        if (callback) callback(erro);
         return socket.emit('error', { mensagem: 'Você não é participante desta conversa' });
       }
 
@@ -118,6 +124,7 @@ module.exports = (io, socket) => {
       const mensagemCompleta = {
         id: mensagem.id,
         id_conversa: conversaId,
+        id_remetente: userId, // ✅ Incluir id do remetente para alinhamento correto
         conteudo_texto: mensagem.conteudo_texto,
         tipo_mensagem: mensagem.tipo_mensagem,
         created_at: mensagem.created_at,
@@ -128,10 +135,17 @@ module.exports = (io, socket) => {
       const roomName = `instancia-${instanciaId}:conversa-${conversaId}`;
       io.to(roomName).emit('message:new', mensagemCompleta);
 
+      // Confirmar sucesso ao remetente (acknowledgment)
+      if (callback) {
+        callback({ success: true, mensagem: mensagemCompleta });
+      }
+
       logger.info(`Mensagem enviada: usuário ${userId} -> conversa ${conversaId}`);
 
     } catch (error) {
       logger.error('Erro ao enviar mensagem:', error);
+      const erro = { error: 'Erro ao enviar mensagem. Tente novamente.' };
+      if (callback) callback(erro);
       socket.emit('error', { mensagem: 'Erro ao enviar mensagem' });
     }
   });
@@ -185,7 +199,7 @@ module.exports = (io, socket) => {
   socket.on('messages:read', async (data) => {
     try {
       const { conversaId } = data;
-      const { userId } = socket;
+      const { userId, instanciaId } = socket;
 
       // Atualizar ultima_leitura
       await ParticipanteConversa.update(
@@ -198,7 +212,18 @@ module.exports = (io, socket) => {
         }
       );
 
+      // Confirmar para o usuário que marcou
       socket.emit('messages:marked_read', { conversaId });
+
+      // Notificar todos na conversa que as mensagens foram lidas (para atualizar UI)
+      const roomName = `instancia-${instanciaId}:conversa-${conversaId}`;
+      io.to(roomName).emit('messages:read_by', { 
+        conversaId, 
+        userId,
+        timestamp: new Date()
+      });
+
+      logger.info(`Mensagens marcadas como lidas: usuário ${userId} -> conversa ${conversaId}`);
 
     } catch (error) {
       logger.error('Erro ao marcar mensagens como lidas:', error);

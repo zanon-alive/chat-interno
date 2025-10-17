@@ -1,5 +1,5 @@
 <template>
-  <Modal v-model="modelValue" title="Nova Conversa" @close="limpar">
+  <Modal :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)" title="Nova Conversa" @close="limpar">
     <div class="tabs">
       <button 
         :class="['tab', { active: tipo === 'individual' }]"
@@ -108,7 +108,7 @@ import { ref, computed, watch } from 'vue';
 import Modal from '../common/Modal.vue';
 import Button from '../common/Button.vue';
 import { useChatStore } from '../../store/chat';
-import usuarioService from '../../services/usuarioService';
+import chatService from '../../services/chatService';
 
 const props = defineProps({
   modelValue: {
@@ -127,6 +127,7 @@ const usuarios = ref([]);
 const usuariosSelecionados = ref([]);
 const nomeGrupo = ref('');
 const criando = ref(false);
+const loading = ref(false);
 const error = ref(null);
 
 const usuariosFiltrados = computed(() => {
@@ -154,13 +155,24 @@ watch(() => props.modelValue, async (newVal) => {
 });
 
 async function carregarUsuarios() {
+  loading.value = true;
+  error.value = null;
+  
   try {
-    const response = await usuarioService.listar({ status: 'ativo' });
-    // Filtrar o próprio usuário
-    usuarios.value = response.data.filter(u => u.id !== chatStore.userId);
+    // Buscar apenas usuários disponíveis (com permissão)
+    const response = await chatService.listarUsuariosDisponiveis();
+    usuarios.value = response.data;
+    
+    console.log(`✅ ${usuarios.value.length} usuários disponíveis (de ${response.total_usuarios} totais)`);
+    
+    if (usuarios.value.length === 0) {
+      error.value = '⚠️ Você não tem permissão para conversar com nenhum usuário. Entre em contato com o administrador para configurar suas permissões.';
+    }
   } catch (err) {
     console.error('Erro ao carregar usuários:', err);
-    error.value = 'Erro ao carregar usuários';
+    error.value = 'Erro ao carregar usuários disponíveis';
+  } finally {
+    loading.value = false;
   }
 }
 
@@ -355,6 +367,16 @@ function limpar() {
   color: #c33;
   border-radius: 6px;
   font-size: 0.9rem;
+}
+
+.info-message {
+  padding: 1.5rem;
+  background-color: #fff3cd;
+  color: #856404;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 0.9rem;
+  border: 1px solid #ffeaa7;
 }
 </style>
 

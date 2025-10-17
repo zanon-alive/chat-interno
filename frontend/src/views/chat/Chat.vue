@@ -3,6 +3,9 @@
     <div class="chat-header">
       <h2>💬 Conversas</h2>
       <div class="header-actions">
+        <button @click="showBusca = true" class="btn-busca" title="Buscar mensagens">
+          🔍
+        </button>
         <button @click="showNovaConversa = true" class="btn-nova-conversa">
           + Nova Conversa
         </button>
@@ -40,7 +43,7 @@
         </div>
 
         <template v-else>
-          <div class="chat-messages">
+          <div class="chat-messages" ref="mensagensContainer">
             <div
               v-for="mensagem in chatStore.mensagensAtivas"
               :key="mensagem.id"
@@ -53,6 +56,7 @@
               </div>
               <div class="mensagem-conteudo">
                 {{ mensagem.conteudo_texto }}
+                <span v-if="mensagem.editada" class="editada-tag">(editada)</span>
               </div>
             </div>
           </div>
@@ -63,10 +67,18 @@
               type="text"
               placeholder="Digite sua mensagem..."
               @keyup.enter="enviarMensagem"
+              :disabled="enviando"
             />
-            <button @click="enviarMensagem" :disabled="!novaMensagem.trim()">
-              Enviar
+            <button 
+              @click="enviarMensagem" 
+              :disabled="!novaMensagem.trim() || enviando"
+              :class="{ 'enviando': enviando }"
+            >
+              {{ enviando ? 'Enviando...' : 'Enviar' }}
             </button>
+          </div>
+          <div v-if="erroEnvio" class="erro-envio">
+            ⚠️ {{ erroEnvio }}
           </div>
         </template>
       </div>
@@ -77,31 +89,61 @@
       v-model="showNovaConversa" 
       @criado="handleConversaCriada"
     />
+
+    <!-- Modal Busca de Mensagens -->
+    <BuscaMensagensModal
+      v-model="showBusca"
+      @mensagem-selecionada="handleMensagemSelecionada"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../store/auth';
 import { useChatStore } from '../../store/chat';
 import socketService from '../../services/socketService';
+import { useNotification } from '../../composables/useNotification';
 import NovaConversaModal from '../../components/chat/NovaConversaModal.vue';
+import BuscaMensagensModal from '../../components/chat/BuscaMensagensModal.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const chatStore = useChatStore();
+const { requestPermission, showMessageNotification } = useNotification();
 
 const novaMensagem = ref('');
 const showNovaConversa = ref(false);
+const showBusca = ref(false);
+const mensagensContainer = ref(null);
+const enviando = ref(false);
+const erroEnvio = ref(null);
 
 onMounted(async () => {
+  // Solicitar permissão para notificações
+  await requestPermission();
+
   // Carregar conversas
   await chatStore.carregarConversas();
 
   // Setup Socket.IO listeners
   socketService.on('message:new', (mensagem) => {
     chatStore.adicionarMensagem(mensagem);
+    
+    // Notificação browser (se não está na conversa ativa)
+    if (chatStore.conversaAtiva?.id !== mensagem.id_conversa && 
+        mensagem.id_remetente !== authStore.usuario?.id) {
+      showMessageNotification(
+        mensagem.remetente?.nome_completo || 'Novo usuário',
+        mensagem.conteudo_texto
+      );
+    }
+
+    // Auto-scroll para última mensagem
+    if (chatStore.conversaAtiva?.id === mensagem.id_conversa) {
+      nextTick(() => scrollToBottom());
+    }
   });
 
   socketService.on('user:online', (data) => {
@@ -116,6 +158,13 @@ onMounted(async () => {
     chatStore.setUsuariosOnline(data.users);
   });
 
+  socketService.on('messages:read_by', (data) => {
+    // Se alguém (incluindo eu) leu mensagens, limpar badge
+    if (data.userId === authStore.usuario?.id) {
+      chatStore.limparBadge(data.conversaId);
+    }
+  });
+
   // Buscar usuários online
   socketService.getOnlineUsers();
 });
@@ -126,17 +175,49 @@ onUnmounted(() => {
   socketService.off('user:online');
   socketService.off('user:offline');
   socketService.off('presence:online_users');
+  socketService.off('messages:read_by');
 });
 
 async function selecionarConversa(conversa) {
   await chatStore.selecionarConversa(conversa);
+  // Auto-scroll após carregar mensagens
+  nextTick(() => scrollToBottom());
 }
 
-function enviarMensagem() {
-  if (!novaMensagem.value.trim() || !chatStore.conversaAtiva) return;
+async function enviarMensagem() {
+  if (!novaMensagem.value.trim() || !chatStore.conversaAtiva || enviando.value) return;
 
-  chatStore.enviarMensagem(chatStore.conversaAtiva.id, novaMensagem.value.trim());
-  novaMensagem.value = '';
+  const mensagemTexto = novaMensagem.value.trim();
+  enviando.value = true;
+  erroEnvio.value = null;
+
+  chatStore.enviarMensagem(
+    chatStore.conversaAtiva.id, 
+    mensagemTexto,
+    // onSuccess
+    () => {
+      novaMensagem.value = '';
+      enviando.value = false;
+      // Auto-scroll após enviar
+      nextTick(() => scrollToBottom());
+    },
+    // onError
+    (error) => {
+      enviando.value = false;
+      erroEnvio.value = error.message || 'Não foi possível enviar a mensagem. Verifique sua conexão.';
+      
+      // Mostrar alerta
+      alert('❌ Erro ao enviar mensagem\n\n' + erroEnvio.value + '\n\nTente novamente.');
+      
+      console.error('Erro ao enviar:', error);
+    }
+  );
+}
+
+function scrollToBottom() {
+  if (mensagensContainer.value) {
+    mensagensContainer.value.scrollTop = mensagensContainer.value.scrollHeight;
+  }
 }
 
 function getNomeConversa(conversa) {
@@ -168,15 +249,61 @@ async function handleConversaCriada(conversa) {
   await chatStore.carregarConversas();
   await chatStore.selecionarConversa(conversa);
 }
+
+async function handleMensagemSelecionada(mensagem) {
+  // Encontrar a conversa da mensagem
+  const conversa = chatStore.conversas.find(c => c.id === mensagem.id_conversa);
+  if (conversa) {
+    await chatStore.selecionarConversa(conversa);
+    // TODO: Scroll para a mensagem específica
+    nextTick(() => scrollToBottom());
+  }
+}
 </script>
 
 <style scoped>
 .chat-container {
   width: 100%;
-  height: 100vh;
+  height: calc(100vh - 70px);
   display: flex;
   flex-direction: column;
   background-color: #fff;
+}
+
+@media (max-width: 768px) {
+  .chat-container {
+    height: calc(100vh - 60px);
+  }
+
+  .sidebar {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    background-color: #fff;
+  }
+
+  .sidebar.hidden-mobile {
+    display: none;
+  }
+
+  .main-chat {
+    width: 100%;
+  }
+
+  .chat-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .chat-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .btn-nova-conversa,
+  .btn-busca {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
+  }
 }
 
 .chat-header {
@@ -216,6 +343,22 @@ async function handleConversaCriada(conversa) {
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
+.btn-busca {
+  padding: 0.6rem 0.9rem;
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  border: 1px solid #667eea;
+  border-radius: 6px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-busca:hover {
+  background: rgba(102, 126, 234, 0.2);
+  transform: scale(1.05);
+}
+
 .chat-content {
   display: flex;
   flex: 1;
@@ -224,8 +367,9 @@ async function handleConversaCriada(conversa) {
 
 .sidebar {
   width: 300px;
+  min-width: 250px;
   border-right: 1px solid #e0e0e0;
-  background-color: #f9f9f9;
+  background-color: #fff;
   overflow-y: auto;
 }
 
@@ -348,6 +492,13 @@ async function handleConversaCriada(conversa) {
   word-wrap: break-word;
 }
 
+.editada-tag {
+  font-size: 0.7rem;
+  font-style: italic;
+  opacity: 0.7;
+  margin-left: 0.5rem;
+}
+
 .chat-input {
   display: flex;
   padding: 1rem;
@@ -387,6 +538,32 @@ async function handleConversaCriada(conversa) {
 .chat-input button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.chat-input button.enviando {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.erro-envio {
+  padding: 0.75rem 1rem;
+  background-color: #fee;
+  color: #c33;
+  border-top: 1px solid #fcc;
+  font-size: 0.9rem;
+  text-align: center;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .test-users {

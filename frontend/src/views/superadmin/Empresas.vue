@@ -219,6 +219,33 @@ async function deletar(empresa) {
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  background-color: #f5f5f5;
+  min-height: calc(100vh - 70px);
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 1rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .header-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .filters {
+    flex-direction: column;
+  }
+
+  .filters input,
+  .filters select {
+    max-width: 100%;
+  }
 }
 
 .page-header {

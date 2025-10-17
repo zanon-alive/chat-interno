@@ -48,6 +48,9 @@ export const useChatStore = defineStore('chat', () => {
     
     // Marcar como lida
     socketService.markAsRead(conversa.id);
+    
+    // Limpar badge localmente (otimista)
+    limparBadge(conversa.id);
   }
 
   async function carregarMensagens(conversaId, opcoes = {}) {
@@ -113,9 +116,24 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  function enviarMensagem(conversaId, conteudo) {
-    // Enviar via Socket.IO
-    socketService.sendMessage(conversaId, conteudo);
+  function enviarMensagem(conversaId, conteudo, onSuccess, onError) {
+    // Enviar via Socket.IO com callbacks de sucesso/erro
+    socketService.sendMessage(
+      conversaId, 
+      conteudo,
+      (response) => {
+        console.log('✅ Mensagem enviada com sucesso');
+        
+        // Limpar badge ao enviar mensagem de resposta
+        limparBadge(conversaId);
+        
+        if (onSuccess) onSuccess(response);
+      },
+      (error) => {
+        console.error('❌ Erro ao enviar mensagem:', error);
+        if (onError) onError(error);
+      }
+    );
   }
 
   function adicionarMensagem(mensagem) {
@@ -163,6 +181,14 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
+  function limparBadge(conversaId) {
+    const conversa = conversas.value.find(c => c.id === conversaId);
+    if (conversa) {
+      conversa.mensagens_nao_lidas = 0;
+      console.log(`🔕 Badge removido da conversa ${conversaId}`);
+    }
+  }
+
   function limpar() {
     conversas.value = [];
     conversaAtiva.value = null;
@@ -196,6 +222,7 @@ export const useChatStore = defineStore('chat', () => {
     setUsuarioOnline,
     setUsuarioOffline,
     setUsuarioDigitando,
+    limparBadge,
     limpar
   };
 });
