@@ -1,5 +1,5 @@
 <template>
-  <Modal v-model="modelValue" title="Nova Conversa" @close="limpar">
+  <Modal :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)" title="Nova Conversa" @close="limpar">
     <div class="tabs">
       <button 
         :class="['tab', { active: tipo === 'individual' }]"
