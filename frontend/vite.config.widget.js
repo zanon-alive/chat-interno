@@ -6,6 +6,15 @@ import { resolve } from 'path';
 export default defineConfig({
   plugins: [vue()],
   
+  // Define variáveis de ambiente para o browser
+  define: {
+    'process.env': JSON.stringify({}),
+    'process.env.NODE_ENV': JSON.stringify('production'),
+    '__VUE_OPTIONS_API__': true,
+    '__VUE_PROD_DEVTOOLS__': false,
+    '__VUE_PROD_HYDRATION_MISMATCH_DETAILS__': false
+  },
+  
   build: {
     lib: {
       entry: resolve(__dirname, 'src/widget/index.js'),
@@ -28,7 +37,10 @@ export default defineConfig({
             return 'chat-widget.css';
           }
           return assetInfo.name;
-        }
+        },
+        
+        // Inline dynamic imports for IIFE
+        inlineDynamicImports: false
       }
     },
     
@@ -45,7 +57,13 @@ export default defineConfig({
       compress: {
         drop_console: false
       }
-    }
+    },
+    
+    // Garantir compatibilidade com browsers
+    target: 'es2015',
+    
+    // Não limpar o diretório (manter outros arquivos)
+    emptyOutDir: false
   },
   
   resolve: {

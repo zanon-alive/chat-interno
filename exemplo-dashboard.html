@@ -517,66 +517,97 @@
        🎨 WIDGET DE CHAT EMBARCÁVEL
        ========================================== -->
   
-  <!-- 1. Incluir o script do widget -->
+  <!-- 1. Incluir o CSS do widget -->
+  <link rel="stylesheet" href="frontend/dist/widget/frontend.css">
+  
+  <!-- 2. Incluir o script do widget -->
   <script src="frontend/dist/widget/chat-widget.iife.js"></script>
   
-  <!-- 2. Inicializar o widget -->
+  <!-- 3. Inicializar o widget -->
   <script>
-    // ⚠️ IMPORTANTE: Em produção, o token deve vir do backend após autenticação
-    // Este é apenas um exemplo com token mock
-    
-    // Simular obtenção de token (em produção, viria do servidor)
-    const chatToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcklkIjoyLCJpbnN0YW5jaWFJZCI6MSwiZW1haWwiOiJwZWRyby5vbGl2ZWlyYUBlbXByZXNhZGVtby5jb20iLCJpYXQiOjE3Mzk4Mzk3NTksImV4cCI6MTczOTkyNjE1OX0.RUc9pKZZOj1fKzq5d2oF8m7HDL0KwHLpVXBl_yQYz5I';
-    
-    // Verificar se ChatWidget está disponível
-    if (typeof ChatWidget !== 'undefined') {
-      // Inicializar o widget
-      ChatWidget.init({
-        // ✅ Autenticação (obrigatório)
-        token: chatToken,
-        
-        // 🌐 URLs
-        apiUrl: 'http://localhost:3000',
-        
-        // 🎨 Aparência
-        position: 'bottom-right',  // ou 'bottom-left'
-        theme: 'light',            // ou 'dark'
-        primaryColor: '#667eea',   // cor customizada
-        
-        // ⚙️ Comportamento
-        minimized: true,           // iniciar minimizado
-        
-        // 📢 Callbacks
-        onReady: () => {
-          console.log('✅ Chat Widget inicializado com sucesso!');
-          console.log('💬 Clique no widget no canto inferior direito para começar a conversar');
-        },
-        
-        onMessage: (mensagem) => {
-          console.log('📨 Nova mensagem recebida:', mensagem);
+    // Aguardar DOM e script carregar completamente
+    window.addEventListener('DOMContentLoaded', function() {
+      console.log('🔍 Verificando ChatWidget...');
+      
+      // ⚠️ IMPORTANTE: Em produção, o token deve vir do backend após autenticação
+      // Este é apenas um exemplo com token mock
+      
+      // Simular obtenção de token (em produção, viria do servidor)
+      const chatToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcklkIjoyLCJpbnN0YW5jaWFJZCI6MSwiZW1haWwiOiJwZWRyby5vbGl2ZWlyYUBlbXByZXNhZGVtby5jb20iLCJpYXQiOjE3Mzk4Mzk3NTksImV4cCI6MTczOTkyNjE1OX0.RUc9pKZZOj1fKzq5d2oF8m7HDL0KwHLpVXBl_yQYz5I';
+      
+      // Tentar inicializar (pode falhar se backend estiver offline, mas widget ainda aparece)
+      function initWidget() {
+        // Verificar se ChatWidget está disponível
+        if (typeof window.ChatWidget !== 'undefined') {
+          console.log('✅ ChatWidget encontrado!');
           
-          // Exemplo: Atualizar badge no sistema
-          // updateNotificationBadge(1);
-        },
-        
-        onOpen: () => {
-          console.log('🚀 Widget aberto');
+          try {
+            // Inicializar o widget
+            window.ChatWidget.init({
+              // ✅ Autenticação (obrigatório)
+              token: chatToken,
+              
+              // 🌐 URLs
+              apiUrl: 'http://localhost:3000',
+              
+              // 🎨 Aparência
+              position: 'bottom-right',  // ou 'bottom-left'
+              theme: 'light',            // ou 'dark'
+              primaryColor: '#667eea',   // cor customizada
+              
+              // ⚙️ Comportamento
+              minimized: true,           // iniciar minimizado
+              
+              // 📢 Callbacks
+              onReady: () => {
+                console.log('✅ Chat Widget inicializado com sucesso!');
+                console.log('💬 Clique no widget no canto inferior direito para começar a conversar');
+              },
+              
+              onMessage: (mensagem) => {
+                console.log('📨 Nova mensagem recebida:', mensagem);
+                
+                // Exemplo: Atualizar badge no sistema
+                // updateNotificationBadge(1);
+              },
+              
+              onOpen: () => {
+                console.log('🚀 Widget aberto');
+                
+                // Exemplo: Analytics
+                // gtag('event', 'chat_widget_opened');
+              },
+              
+              onClose: () => {
+                console.log('📦 Widget fechado');
+              },
+              
+              onError: (error) => {
+                console.warn('⚠️ Erro no widget:', error.message);
+                console.log('💡 O widget ainda está visível e mostrará o status offline');
+              }
+            });
+          } catch (error) {
+            console.error('❌ Erro ao inicializar widget:', error);
+            console.log('💡 Verifique se o backend está rodando em http://localhost:3000');
+          }
+        } else {
+          console.warn('⚠️ ChatWidget não encontrado!');
+          console.log('💡 Para testar o widget:');
+          console.log('1. cd frontend');
+          console.log('2. npm run build:widget');
+          console.log('3. Recarregue esta página');
+          console.log('');
+          console.log('📁 Verifique se existe: frontend/dist/widget/chat-widget.iife.js');
           
-          // Exemplo: Analytics
-          // gtag('event', 'chat_widget_opened');
-        },
-        
-        onClose: () => {
-          console.log('📦 Widget fechado');
+          // Tentar novamente após 1 segundo
+          setTimeout(initWidget, 1000);
         }
-      });
-    } else {
-      console.warn('⚠️ ChatWidget não encontrado!');
-      console.log('💡 Para testar o widget:');
-      console.log('1. cd frontend');
-      console.log('2. npm run build:widget');
-      console.log('3. Recarregue esta página');
-    }
+      }
+      
+      // Iniciar
+      initWidget();
+    });
   </script>
 
   <!-- Script de informações -->
