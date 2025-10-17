@@ -40,7 +40,7 @@
         </div>
 
         <template v-else>
-          <div class="chat-messages">
+          <div class="chat-messages" ref="mensagensContainer">
             <div
               v-for="mensagem in chatStore.mensagensAtivas"
               :key="mensagem.id"
@@ -53,6 +53,7 @@
               </div>
               <div class="mensagem-conteudo">
                 {{ mensagem.conteudo_texto }}
+                <span v-if="mensagem.editada" class="editada-tag">(editada)</span>
               </div>
             </div>
           </div>
@@ -81,27 +82,47 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../store/auth';
 import { useChatStore } from '../../store/chat';
 import socketService from '../../services/socketService';
+import { useNotification } from '../../composables/useNotification';
 import NovaConversaModal from '../../components/chat/NovaConversaModal.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const chatStore = useChatStore();
+const { requestPermission, showMessageNotification } = useNotification();
 
 const novaMensagem = ref('');
 const showNovaConversa = ref(false);
+const mensagensContainer = ref(null);
 
 onMounted(async () => {
+  // Solicitar permissão para notificações
+  await requestPermission();
+
   // Carregar conversas
   await chatStore.carregarConversas();
 
   // Setup Socket.IO listeners
   socketService.on('message:new', (mensagem) => {
     chatStore.adicionarMensagem(mensagem);
+    
+    // Notificação browser (se não está na conversa ativa)
+    if (chatStore.conversaAtiva?.id !== mensagem.id_conversa && 
+        mensagem.id_remetente !== authStore.usuario?.id) {
+      showMessageNotification(
+        mensagem.remetente?.nome_completo || 'Novo usuário',
+        mensagem.conteudo_texto
+      );
+    }
+
+    // Auto-scroll para última mensagem
+    if (chatStore.conversaAtiva?.id === mensagem.id_conversa) {
+      nextTick(() => scrollToBottom());
+    }
   });
 
   socketService.on('user:online', (data) => {
@@ -130,6 +151,8 @@ onUnmounted(() => {
 
 async function selecionarConversa(conversa) {
   await chatStore.selecionarConversa(conversa);
+  // Auto-scroll após carregar mensagens
+  nextTick(() => scrollToBottom());
 }
 
 function enviarMensagem() {
@@ -137,6 +160,15 @@ function enviarMensagem() {
 
   chatStore.enviarMensagem(chatStore.conversaAtiva.id, novaMensagem.value.trim());
   novaMensagem.value = '';
+  
+  // Auto-scroll após enviar
+  nextTick(() => scrollToBottom());
+}
+
+function scrollToBottom() {
+  if (mensagensContainer.value) {
+    mensagensContainer.value.scrollTop = mensagensContainer.value.scrollHeight;
+  }
 }
 
 function getNomeConversa(conversa) {
@@ -346,6 +378,13 @@ async function handleConversaCriada(conversa) {
 
 .mensagem-conteudo {
   word-wrap: break-word;
+}
+
+.editada-tag {
+  font-size: 0.7rem;
+  font-style: italic;
+  opacity: 0.7;
+  margin-left: 0.5rem;
 }
 
 .chat-input {
