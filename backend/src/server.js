@@ -1,6 +1,7 @@
 const http = require('http');
 const app = require('./app');
 const logger = require('./utils/logger');
+const initializeSocketIO = require('./sockets');
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || 'localhost';
@@ -8,8 +9,11 @@ const HOST = process.env.HOST || 'localhost';
 // Criar servidor HTTP
 const server = http.createServer(app);
 
-// Socket.IO será configurado aqui posteriormente
-// const io = require('./sockets')(server);
+// Inicializar Socket.IO
+const io = initializeSocketIO(server);
+
+// Anexar io ao app para uso nos controllers
+app.set('io', io);
 
 // Iniciar servidor
 server.listen(PORT, HOST, () => {
