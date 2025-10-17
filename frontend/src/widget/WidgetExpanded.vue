@@ -16,7 +16,7 @@
       <div class="header-actions">
         <button 
           v-if="!conversaSelecionada && !isOffline && !isConnecting"
-          @click="showNovaConversa = true" 
+          @click="abrirNovaConversa" 
           class="btn-action" 
           title="Nova Conversa"
         >
@@ -88,12 +88,14 @@
     </div>
     
     <!-- Modal Nova Conversa Widget -->
-    <NovaConversaWidget 
-      v-if="showNovaConversa"
-      :model-value="showNovaConversa"
-      @update:model-value="showNovaConversa = $event"
-      @conversa-criada="handleConversaCriada"
-    />
+    <Teleport to="body">
+      <NovaConversaWidget 
+        v-if="showNovaConversa"
+        :model-value="showNovaConversa"
+        @update:model-value="showNovaConversa = $event"
+        @conversa-criada="handleConversaCriada"
+      />
+    </Teleport>
   </div>
 </template>
 
@@ -175,11 +177,13 @@ function getNomeConversa(conversa) {
   return outros?.[0]?.nome_completo || 'Conversa';
 }
 
+function abrirNovaConversa() {
+  showNovaConversa.value = true;
+}
+
 async function handleConversaCriada(conversa) {
   showNovaConversa.value = false;
-  // Emitir para o componente pai atualizar lista
   emit('nova-conversa', conversa);
-  // Selecionar a nova conversa
   conversaSelecionada.value = conversa;
 }
 </script>

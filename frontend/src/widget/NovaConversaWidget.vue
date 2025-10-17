@@ -79,6 +79,12 @@ const usuariosFiltrados = computed(() => {
   );
 });
 
+// Se abrir com modelValue true, carregar imediatamente
+// (v-if cria componente já com modelValue=true, watch não dispara)
+if (props.modelValue) {
+  carregarUsuarios();
+}
+
 watch(() => props.modelValue, (newVal) => {
   if (newVal) {
     carregarUsuarios();
@@ -92,20 +98,17 @@ async function carregarUsuarios() {
   error.value = null;
   
   try {
-    // Buscar usuários disponíveis (com permissão)
     const response = await apiWidget.get('/chat/usuarios-disponiveis');
     
     // Resposta vem em { success: true, data: [...], total: N }
     usuarios.value = response.data?.data || response.data || [];
     
-    console.log(`✅ Widget: ${usuarios.value.length} usuários disponíveis para conversa`);
-    
     if (usuarios.value.length === 0) {
       error.value = '⚠️ Nenhum usuário disponível para conversa. Entre em contato com o administrador.';
     }
   } catch (err) {
-    console.error('❌ Erro ao carregar usuários:', err);
-    error.value = 'Erro ao carregar usuários disponíveis';
+    console.error('Erro ao carregar usuários para widget:', err);
+    error.value = 'Erro ao carregar usuários disponíveis: ' + (err.message || 'Erro desconhecido');
   } finally {
     loading.value = false;
   }
@@ -118,12 +121,9 @@ async function selecionarUsuario(usuario) {
   error.value = null;
 
   try {
-    // Criar conversa individual
     const response = await apiWidget.post('/chat/conversas/individual', {
       participante_id: usuario.id
     });
-
-    console.log('✅ Widget: Conversa criada:', response.data);
     
     // Resposta vem em { success: true, data: {...} }
     const conversa = response.data?.data || response.data;
@@ -131,7 +131,7 @@ async function selecionarUsuario(usuario) {
     emit('conversa-criada', conversa);
     fechar();
   } catch (err) {
-    console.error('❌ Widget: Erro ao criar conversa:', err);
+    console.error('Erro ao criar conversa no widget:', err);
     error.value = err.response?.data?.message || err.message || 'Erro ao criar conversa';
     alert('❌ Erro ao criar conversa:\n\n' + error.value);
   } finally {
