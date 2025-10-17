@@ -22,6 +22,7 @@
       :is-offline="isOffline"
       :offline-message="offlineMessage"
       :is-connecting="isConnecting"
+      :user-id="userId"
       @expand="expand"
     />
   </div>
