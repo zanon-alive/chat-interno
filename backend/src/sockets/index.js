@@ -52,6 +52,7 @@ function initializeSocketIO(httpServer) {
     // Registrar handlers
     chatHandler(io, socket);
     presenceHandler(io, socket);
+    require('./messageStatusHandler')(io, socket);
 
     // Evento de desconexão
     socket.on('disconnect', (reason) => {

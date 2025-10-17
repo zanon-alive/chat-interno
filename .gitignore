@@ -8,6 +8,10 @@ yarn.lock
 .env.local
 .env.*.local
 
+# Tokens (não versionar tokens de teste)
+.widget-token.txt
+*.token.txt
+
 # Logs
 logs/
 *.log

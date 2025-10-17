@@ -124,9 +124,10 @@ module.exports = (io, socket) => {
       const mensagemCompleta = {
         id: mensagem.id,
         id_conversa: conversaId,
-        id_remetente: userId, // ✅ Incluir id do remetente para alinhamento correto
+        id_remetente: userId,
         conteudo_texto: mensagem.conteudo_texto,
         tipo_mensagem: mensagem.tipo_mensagem,
+        status_entrega: mensagem.status_entrega || 'enviada',
         created_at: mensagem.created_at,
         remetente: remetente.toJSON()
       };

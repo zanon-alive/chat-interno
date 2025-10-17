@@ -6,8 +6,12 @@
         :is-offline="isOffline"
         :offline-message="offlineMessage"
         :is-connecting="isConnecting"
+        :conversas="conversas"
+        :user-id="userId"
         @minimize="minimize"
         @close="close"
+        @conversa-selecionada="handleConversaSelecionada"
+        @nova-conversa="handleNovaConversa"
       />
     </Transition>
     
@@ -28,9 +32,8 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { createPinia } from 'pinia';
 import WidgetMinimized from './WidgetMinimized.vue';
 import WidgetExpanded from './WidgetExpanded.vue';
-import { useChatStore } from '../store/chat';
-import { useAuthStore } from '../store/auth';
 import socketService from '../services/socketService';
+import apiWidget from '../services/apiWidget';
 
 const props = defineProps({
   token: {
@@ -59,15 +62,13 @@ const props = defineProps({
 
 const emit = defineEmits(['ready', 'open', 'close', 'message', 'error']);
 
-// Pinia store
-const pinia = createPinia();
-const chatStore = useChatStore(pinia);
-const authStore = useAuthStore(pinia);
-
-// State
+// State (SEM usar stores para evitar conflitos)
 const isExpanded = ref(!props.minimized);
 const conversas = ref([]);
-const totalNaoLidas = computed(() => chatStore.totalNaoLidas);
+const userId = ref(null);
+const totalNaoLidas = computed(() => {
+  return conversas.value.reduce((total, conv) => total + (conv.mensagens_nao_lidas || 0), 0);
+});
 const isOffline = ref(false);
 const offlineMessage = ref('');
 const isConnecting = ref(true);
@@ -106,41 +107,68 @@ async function init() {
       // Continuar mesmo sem Socket.IO
     }
     
-    // Tentar carregar conversas
+    // Decodificar token para obter userId
     try {
-      await chatStore.carregarConversas();
-      conversas.value = chatStore.conversas;
+      const tokenParts = props.token.split('.');
+      if (tokenParts.length === 3) {
+        const payload = JSON.parse(atob(tokenParts[1]));
+        userId.value = payload.userId || payload.id;
+        console.log('👤 Widget: User ID:', userId.value);
+      }
+    } catch (e) {
+      console.warn('⚠️ Não foi possível decodificar token:', e);
+    }
+    
+    // Tentar carregar conversas usando API sem redirecionamento
+    try {
+      const response = await apiWidget.get('/chat/conversas');
+      conversas.value = response.data || [];
       isOffline.value = false;
       isConnecting.value = false;
       
       console.log('✅ Chat Widget inicializado com sucesso!');
       emit('ready');
     } catch (apiError) {
-      // API não está disponível
-      console.warn('⚠️ API não disponível:', apiError);
+      // API não está disponível ou token inválido
+      console.warn('⚠️ Widget: Erro ao carregar conversas:', apiError.message);
+      
       isOffline.value = true;
       isConnecting.value = false;
-      offlineMessage.value = 'Chat temporariamente indisponível. Tente novamente mais tarde.';
+      
+      // Mensagem específica baseada no erro
+      if (apiError.status === 401) {
+        offlineMessage.value = 'Token inválido ou expirado. Entre em contato com o administrador.';
+      } else if (apiError.status === 0) {
+        offlineMessage.value = 'Servidor não disponível. Tente novamente mais tarde.';
+      } else {
+        offlineMessage.value = apiError.message || 'Chat temporariamente indisponível.';
+      }
       
       // Emitir evento de erro mas manter widget visível
       emit('error', {
-        type: 'connection',
+        type: apiError.status === 401 ? 'authentication' : 'connection',
         message: offlineMessage.value,
+        status: apiError.status,
         error: apiError
       });
       
-      // Widget ainda está "pronto" (visível) mesmo offline
+      // Widget ainda está "pronto" (visível) mesmo com erro
       emit('ready');
     }
     
-    // Setup listeners (mesmo offline, preparar para quando conectar)
+    // Setup listeners Socket.IO (mesmo offline, preparar para quando conectar)
     socketService.on('message:new', (mensagem) => {
-      chatStore.adicionarMensagem(mensagem);
+      // Adicionar mensagem localmente
+      const conversa = conversas.value.find(c => c.id === mensagem.id_conversa);
+      if (conversa) {
+        conversa.ultima_mensagem = mensagem;
+        conversa.mensagens_nao_lidas = (conversa.mensagens_nao_lidas || 0) + 1;
+      }
       emit('message', mensagem);
     });
     
     socketService.on('connect', () => {
-      console.log('✅ Reconectado ao servidor!');
+      console.log('✅ Widget: Reconectado ao servidor!');
       isOffline.value = false;
       offlineMessage.value = '';
       // Tentar recarregar conversas
@@ -148,7 +176,7 @@ async function init() {
     });
     
     socketService.on('disconnect', () => {
-      console.log('⚠️ Desconectado do servidor');
+      console.log('⚠️ Widget: Desconectado do servidor');
       isOffline.value = true;
       offlineMessage.value = 'Conexão perdida. Reconectando...';
     });
@@ -172,14 +200,22 @@ async function init() {
 
 async function retryConnection() {
   try {
-    await chatStore.carregarConversas();
-    conversas.value = chatStore.conversas;
+    const response = await apiWidget.get('/chat/conversas');
+    conversas.value = response.data || [];
     isOffline.value = false;
     offlineMessage.value = '';
-    console.log('✅ Reconexão bem-sucedida!');
+    console.log('✅ Widget: Reconexão bem-sucedida!');
   } catch (error) {
-    console.warn('⚠️ Falha na reconexão:', error);
-    setTimeout(retryConnection, 5000); // Tentar novamente em 5 segundos
+    console.warn('⚠️ Widget: Falha na reconexão:', error.message);
+    
+    // Atualizar mensagem baseada no erro
+    if (error.status === 401) {
+      offlineMessage.value = 'Token inválido. Entre em contato com o administrador.';
+      // Não tentar novamente se o token está inválido
+    } else {
+      offlineMessage.value = 'Servidor não disponível. Tentando reconectar...';
+      setTimeout(retryConnection, 5000); // Tentar novamente em 5 segundos
+    }
   }
 }
 
@@ -189,6 +225,28 @@ onMounted(() => {
 
 onUnmounted(() => {
   socketService.disconnect();
+});
+
+function handleConversaSelecionada(conversa) {
+  console.log('Widget: Conversa selecionada:', conversa);
+}
+
+async function handleNovaConversa(conversa) {
+  console.log('Widget: Nova conversa criada:', conversa);
+  // Recarregar lista de conversas
+  await retryConnection();
+}
+
+// Expor métodos para API externa
+defineExpose({
+  expand,
+  minimize,
+  close,
+  isExpanded,
+  conversas,
+  totalNaoLidas,
+  isOffline,
+  retryConnection
 });
 </script>
 
