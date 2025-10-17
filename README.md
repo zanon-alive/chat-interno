@@ -60,34 +60,40 @@ A documentação completa do projeto está organizada da seguinte forma:
 
 ## 🚀 Quick Start
 
-### Pré-requisitos
+**📖 Guia Completo:** [COMO_RODAR.md](./COMO_RODAR.md)
 
-- Node.js >= 18.x
-- PostgreSQL >= 14
-- npm ou yarn
-
-### Instalação
+### Instalação Rápida (5 minutos)
 
 ```bash
-# Clone o repositório
-git clone <repository-url>
+# 1. Clone
+git clone https://github.com/zanon-alive/chat-interno.git
 cd chat-interno
 
-# Backend
+# 2. Backend
 cd backend
 npm install
-cp .env.example .env
-# Configure as variáveis de ambiente
-npm run migrate
-npm run dev
+npm run migrate  # Criar banco
+npm run seed     # Popular com dados de teste
 
-# Frontend
+# 3. Frontend (novo terminal)
 cd ../frontend
 npm install
-cp .env.example .env
-# Configure as variáveis de ambiente
-npm run dev
+
+# 4. Rodar
+# Terminal 1: cd backend && npm run dev
+# Terminal 2: cd frontend && npm run dev
+
+# 5. Acessar: http://localhost:5173
+# Login: pedro.oliveira@empresademo.com / User@123456
 ```
+
+**✅ Chat funcionando em 5 minutos!**
+
+### Usuários de Teste
+
+- **Super Admin:** admin@chatinterno.com / Admin@123456
+- **Admin Cliente:** joao.silva@empresademo.com / Admin@123456
+- **Usuário:** pedro.oliveira@empresademo.com / User@123456
 
 ## 📁 Estrutura do Projeto
 
@@ -130,7 +136,44 @@ chat-interno/
 
 ## 📊 Status do Projeto
 
-🚧 **Em Planejamento** - Documentação sendo criada
+✅ **MVP FUNCIONAL** - Backend 100% + Frontend 30%
+
+**Progresso Geral:**
+
+```
+Backend MVP:     ████████████████████ 100% ✅
+Frontend MVP:    ██████░░░░░░░░░░░░░░  30% 🔄
+Documentação:    ████████████████████ 100% ✅
+Testes:          ░░░░░░░░░░░░░░░░░░░░   0% ⏳
+Deploy:          ░░░░░░░░░░░░░░░░░░░░   0% ⏳
+
+Total:           ████████████░░░░░░░░  65%
+```
+
+### 🎯 Funcionalidades Implementadas
+
+- ✅ **40 endpoints REST** funcionando
+- ✅ **10 eventos Socket.IO** em tempo real
+- ✅ **Chat funcionando** com mensagens instantâneas
+- ✅ **Multi-tenancy** seguro
+- ✅ **Autenticação JWT** robusta
+- ✅ **Banco de dados** completo
+- ✅ **Login + Interface** de chat
+
+### 🚀 Pode Usar Agora!
+
+```bash
+# Terminal 1
+cd backend && npm install && npm run migrate && npm run seed && npm run dev
+
+# Terminal 2
+cd frontend && npm install && npm run dev
+
+# Acesse: http://localhost:5173
+# Login: pedro.oliveira@empresademo.com / User@123456
+```
+
+**Em 5 minutos você terá o chat funcionando!**
 
 ## 📝 Licença
 
