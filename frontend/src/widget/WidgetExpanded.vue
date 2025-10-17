@@ -87,12 +87,12 @@
       </div>
     </div>
     
-    <!-- Modal Nova Conversa -->
-    <NovaConversaModal 
+    <!-- Modal Nova Conversa Widget -->
+    <NovaConversaWidget 
       v-if="showNovaConversa"
       :model-value="showNovaConversa"
       @update:model-value="showNovaConversa = $event"
-      @criado="handleConversaCriada"
+      @conversa-criada="handleConversaCriada"
     />
   </div>
 </template>
@@ -100,7 +100,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import WidgetChat from './WidgetChat.vue';
-import NovaConversaModal from '../components/chat/NovaConversaModal.vue';
+import NovaConversaWidget from './NovaConversaWidget.vue';
 
 const props = defineProps({
   position: {
