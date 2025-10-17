@@ -89,7 +89,17 @@ Integre o chat em sistemas legados com apenas 2 linhas:
 </script>
 ```
 
-**📖 Documentação:** [WIDGET_INTEGRATION.md](./WIDGET_INTEGRATION.md)
+**🧪 Testar Widget:**
+```bash
+./testar-widget.sh
+# Ou: bash testar-widget.sh
+# Abrirá: http://localhost:8080/exemplo-dashboard.html
+```
+
+**📖 Documentação:** 
+- [WIDGET_INTEGRATION.md](./WIDGET_INTEGRATION.md) - Guia de integração
+- [TESTE_WIDGET.md](./TESTE_WIDGET.md) - Guia de testes
+- [13-WIDGET_EMBARCAVEL.md](./13-WIDGET_EMBARCAVEL.md) - Documentação técnica
 
 ### Instalação Rápida (5 minutos)
 
