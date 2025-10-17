@@ -1,0 +1,96 @@
+╔════════════════════════════════════════════════════════════════╗
+║                   🧪 TESTE DO WIDGET - PASSO A PASSO          ║
+╠════════════════════════════════════════════════════════════════╣
+║                                                                ║
+║  PREPARAÇÃO (uma vez):                                         ║
+║                                                                ║
+║  1. cd /home/zanonr/desenvolvimento/chat-interno/frontend     ║
+║     npm run build:widget                                       ║
+║                                                                ║
+║     ✅ Arquivos gerados:                                      ║
+║        - dist/widget/chat-widget.iife.js (184KB)              ║
+║        - dist/widget/frontend.css (16KB)                      ║
+║                                                                ║
+╠════════════════════════════════════════════════════════════════╣
+║                                                                ║
+║  TESTE 1: Widget com Backend ONLINE                            ║
+║                                                                ║
+║  Terminal 1:                                                   ║
+║  cd /home/zanonr/desenvolvimento/chat-interno/backend         ║
+║  npm run dev                                                   ║
+║                                                                ║
+║  Terminal 2:                                                   ║
+║  cd /home/zanonr/desenvolvimento/chat-interno                 ║
+║  python3 -m http.server 8080                                   ║
+║                                                                ║
+║  Navegador:                                                    ║
+║  http://localhost:8080/exemplo-dashboard.html                 ║
+║                                                                ║
+║  ✅ ESPERADO:                                                 ║
+║     • Widget aparece canto inferior direito                   ║
+║     • Mostra preview de conversas                             ║
+║     • Clique → abre chat completo                            ║
+║     • Chat funciona normalmente                               ║
+║                                                                ║
+╠════════════════════════════════════════════════════════════════╣
+║                                                                ║
+║  TESTE 2: Widget com Backend OFFLINE                           ║
+║                                                                ║
+║  Terminal:                                                     ║
+║  cd /home/zanonr/desenvolvimento/chat-interno                 ║
+║  python3 -m http.server 8080                                   ║
+║  (SEM rodar o backend!)                                        ║
+║                                                                ║
+║  Navegador:                                                    ║
+║  http://localhost:8080/exemplo-dashboard.html                 ║
+║                                                                ║
+║  ✅ ESPERADO:                                                 ║
+║     • Widget aparece canto inferior direito                   ║
+║     • Mostra "⏳ Conectando..." (2-3 segundos)               ║
+║     • Muda para "⚠️ Chat indisponível"                       ║
+║     • Clique → mostra mensagem offline                       ║
+║     • Botão "Tentar Novamente" presente                      ║
+║                                                                ║
+╠════════════════════════════════════════════════════════════════╣
+║                                                                ║
+║  TESTE 3: Reconexão Automática                                 ║
+║                                                                ║
+║  1. Abra dashboard com backend ONLINE                          ║
+║  2. Widget funciona normal                                     ║
+║  3. Pare backend (Ctrl+C no Terminal 1)                       ║
+║  4. Widget detecta e mostra "offline"                         ║
+║  5. Inicie backend novamente                                  ║
+║  6. Widget reconecta automaticamente (~5s)                    ║
+║                                                                ║
+╠════════════════════════════════════════════════════════════════╣
+║                                                                ║
+║  CONSOLE LOGS (Backend Online):                                ║
+║                                                                ║
+║  🔍 Verificando ChatWidget...                                 ║
+║  ✅ ChatWidget encontrado!                                    ║
+║  🔌 Tentando conectar ao servidor...                          ║
+║  ✅ Chat Widget inicializado com sucesso!                     ║
+║  💬 Clique no widget no canto inferior direito                ║
+║                                                                ║
+╠════════════════════════════════════════════════════════════════╣
+║                                                                ║
+║  CONSOLE LOGS (Backend Offline):                               ║
+║                                                                ║
+║  🔍 Verificando ChatWidget...                                 ║
+║  ✅ ChatWidget encontrado!                                    ║
+║  🔌 Tentando conectar ao servidor...                          ║
+║  ⚠️ API não disponível                                        ║
+║  ⚠️ Erro no widget: Chat temporariamente indisponível         ║
+║  💡 O widget ainda está visível                               ║
+║  ✅ Chat Widget inicializado com sucesso!                     ║
+║                                                                ║
+╠════════════════════════════════════════════════════════════════╣
+║                                                                ║
+║  🎯 PRÓXIMOS PASSOS:                                           ║
+║                                                                ║
+║  1. Teste nos 3 cenários acima                                ║
+║  2. Verifique os estados visuais                              ║
+║  3. Teste responsividade (DevTools)                           ║
+║  4. Leia: TESTE_WIDGET.md (guia completo)                     ║
+║                                                                ║
+╚════════════════════════════════════════════════════════════════╝
