@@ -5,6 +5,7 @@ const roleCheck = require('../middlewares/roleCheck');
 const tenantValidation = require('../middlewares/tenantValidation');
 const equipeController = require('../controllers/admin/equipeController');
 const usuarioController = require('../controllers/admin/usuarioController');
+const usuarioWidgetController = require('../controllers/admin/usuarioWidgetController');
 
 // Todas as rotas requerem autenticação, role admin_cliente e validação de tenant
 router.use(auth);
@@ -27,6 +28,11 @@ router.get('/usuarios/:id', usuarioController.buscarPorId);
 router.post('/usuarios', usuarioController.criar);
 router.put('/usuarios/:id', usuarioController.atualizar);
 router.delete('/usuarios/:id', usuarioController.deletar);
+
+// Rotas de Token de Widget para Usuários
+router.post('/usuarios/:id/gerar-token-widget', usuarioWidgetController.gerarToken);
+router.get('/usuarios/:id/token-widget', usuarioWidgetController.obterToken);
+router.delete('/usuarios/:id/token-widget', usuarioWidgetController.revogarToken);
 
 module.exports = router;
 

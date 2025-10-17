@@ -64,9 +64,20 @@
 
       <template #actions="{ item }">
         <Button variant="secondary" @click="editar(item)" size="sm">Editar</Button>
+        <Button @click="abrirTokenWidget(item)" size="sm" title="Gerenciar Token de Widget">
+          🔑 Token Widget
+        </Button>
         <Button variant="danger" @click="deletar(item)" size="sm">Deletar</Button>
       </template>
     </Table>
+
+    <!-- Modal Token Widget -->
+    <TokenWidgetModal
+      v-model="showTokenModal"
+      :usuario="usuarioTokenWidget"
+      @token-gerado="handleTokenGerado"
+      @token-revogado="handleTokenRevogado"
+    />
 
     <Modal v-model="showModal" :title="usuarioEdicao ? 'Editar Usuário' : 'Novo Usuário'">
       <form @submit.prevent="salvar">
@@ -140,6 +151,7 @@ import { ref, onMounted, computed } from 'vue';
 import Button from '../../components/common/Button.vue';
 import Modal from '../../components/common/Modal.vue';
 import Table from '../../components/common/Table.vue';
+import TokenWidgetModal from '../../components/admin/TokenWidgetModal.vue';
 import usuarioService from '../../services/usuarioService';
 import equipeService from '../../services/equipeService';
 
@@ -148,7 +160,9 @@ const equipes = ref([]);
 const stats = ref(null);
 const loading = ref(false);
 const showModal = ref(false);
+const showTokenModal = ref(false);
 const usuarioEdicao = ref(null);
+const usuarioTokenWidget = ref(null);
 const salvando = ref(false);
 const error = ref(null);
 
@@ -285,6 +299,21 @@ async function salvar() {
   } finally {
     salvando.value = false;
   }
+}
+
+function abrirTokenWidget(usuario) {
+  usuarioTokenWidget.value = usuario;
+  showTokenModal.value = true;
+}
+
+function handleTokenGerado(data) {
+  console.log('✅ Token gerado:', data);
+  // Opcional: atualizar lista de usuários
+}
+
+function handleTokenRevogado() {
+  console.log('🗑️ Token revogado');
+  // Opcional: atualizar lista de usuários
 }
 
 async function deletar(usuario) {
