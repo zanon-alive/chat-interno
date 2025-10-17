@@ -2,10 +2,26 @@
   <div class="widget-expanded" :class="positionClass">
     <div class="widget-expanded-header">
       <div class="header-left">
+        <button 
+          v-if="conversaSelecionada" 
+          @click="voltarParaLista" 
+          class="btn-back"
+          title="Voltar para conversas"
+        >
+          ←
+        </button>
         <span class="widget-icon">💬</span>
-        <span class="widget-title">Chat Interno</span>
+        <span class="widget-title">{{ tituloHeader }}</span>
       </div>
       <div class="header-actions">
+        <button 
+          v-if="!conversaSelecionada && !isOffline && !isConnecting"
+          @click="showNovaConversa = true" 
+          class="btn-action" 
+          title="Nova Conversa"
+        >
+          <span>+</span>
+        </button>
         <button @click="minimize" class="btn-action" title="Minimizar">
           <span>−</span>
         </button>
@@ -38,16 +54,53 @@
       </div>
       
       <!-- Chat Normal -->
-      <div v-else class="chat-embedded">
-        <ChatView :embedded="true" />
+      <div v-else class="widget-chat">
+        <!-- Lista de Conversas -->
+        <div v-if="!conversaSelecionada" class="conversas-lista">
+          <div 
+            v-for="conversa in conversas"
+            :key="conversa.id"
+            class="conversa-item"
+            @click="selecionarConversa(conversa)"
+          >
+            <div class="conversa-info">
+              <strong>{{ getNomeConversa(conversa) }}</strong>
+              <p class="ultima-msg">{{ conversa.ultima_mensagem?.conteudo_texto || 'Sem mensagens' }}</p>
+            </div>
+            <span v-if="conversa.mensagens_nao_lidas" class="badge-conversa">
+              {{ conversa.mensagens_nao_lidas }}
+            </span>
+          </div>
+          
+          <div v-if="conversas.length === 0" class="empty-conversas">
+            <p>Nenhuma conversa ainda</p>
+            <button @click="showNovaConversa = true" class="btn-nova">
+              + Nova Conversa
+            </button>
+          </div>
+        </div>
+        
+        <!-- Conversa Aberta -->
+        <div v-else class="conversa-aberta">
+          <ChatView :embedded="true" :conversa-id="conversaSelecionada.id" />
+        </div>
       </div>
     </div>
+    
+    <!-- Modal Nova Conversa -->
+    <NovaConversaModal 
+      v-if="showNovaConversa"
+      :model-value="showNovaConversa"
+      @update:model-value="showNovaConversa = $event"
+      @criado="handleConversaCriada"
+    />
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import ChatView from '../views/chat/Chat.vue';
+import NovaConversaModal from '../components/chat/NovaConversaModal.vue';
 
 const props = defineProps({
   position: {
@@ -65,13 +118,27 @@ const props = defineProps({
   isConnecting: {
     type: Boolean,
     default: false
+  },
+  conversas: {
+    type: Array,
+    default: () => []
   }
 });
 
-const emit = defineEmits(['minimize', 'close']);
+const emit = defineEmits(['minimize', 'close', 'conversa-selecionada', 'nova-conversa']);
+
+const conversaSelecionada = ref(null);
+const showNovaConversa = ref(false);
 
 const positionClass = computed(() => {
   return `position-${props.position}`;
+});
+
+const tituloHeader = computed(() => {
+  if (conversaSelecionada.value) {
+    return getNomeConversa(conversaSelecionada.value);
+  }
+  return 'Chat Interno';
 });
 
 function minimize() {
@@ -85,6 +152,31 @@ function close() {
 function retry() {
   // Recarregar a página ou tentar reconectar
   window.location.reload();
+}
+
+function selecionarConversa(conversa) {
+  conversaSelecionada.value = conversa;
+  emit('conversa-selecionada', conversa);
+}
+
+function voltarParaLista() {
+  conversaSelecionada.value = null;
+}
+
+function getNomeConversa(conversa) {
+  if (conversa.nome_conversa) return conversa.nome_conversa;
+  
+  // Para 1-on-1, pegar nome do outro participante
+  const outros = conversa.participantes?.filter(p => !p.is_current_user);
+  return outros?.[0]?.nome_completo || 'Conversa';
+}
+
+async function handleConversaCriada(conversa) {
+  showNovaConversa.value = false;
+  // Emitir para o componente pai atualizar lista
+  emit('nova-conversa', conversa);
+  // Selecionar a nova conversa
+  conversaSelecionada.value = conversa;
 }
 </script>
 
@@ -181,27 +273,143 @@ function retry() {
   flex-direction: column;
 }
 
-.chat-embedded {
+.widget-chat {
   flex: 1;
-  overflow: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Ajustes para o componente Chat dentro do widget */
-.chat-embedded :deep(.chat-container) {
+/* Lista de Conversas */
+.conversas-lista {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.conversa-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e9ecef;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.conversa-item:hover {
+  background: #f8f9fa;
+}
+
+.conversa-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.conversa-info strong {
+  display: block;
+  color: #2c3e50;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.ultima-msg {
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.badge-conversa {
+  background: #667eea;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.empty-conversas {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #6c757d;
+}
+
+.empty-conversas p {
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+
+.btn-nova {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-nova:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Conversa Aberta */
+.conversa-aberta {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Botão Voltar */
+.btn-back {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  transition: background 0.2s;
+  margin-right: 8px;
+}
+
+.btn-back:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Ajustes para Chat.vue embedded */
+.conversa-aberta :deep(.chat-container) {
   height: 100%;
 }
 
-.chat-embedded :deep(.chat-header) {
-  display: none; /* Já temos header no widget */
+.conversa-aberta :deep(.chat-header) {
+  display: none;
 }
 
-.chat-embedded :deep(.sidebar) {
+.conversa-aberta :deep(.chat-content) {
+  flex: 1;
+}
+
+.conversa-aberta :deep(.sidebar) {
+  display: none;
+}
+
+.conversa-aberta :deep(.main-chat) {
   width: 100%;
-  border-right: none;
-}
-
-.chat-embedded :deep(.main-chat) {
-  display: none; /* Mostrar apenas no click em conversa */
 }
 
 /* Status Messages */

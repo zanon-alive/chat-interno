@@ -6,8 +6,11 @@
         :is-offline="isOffline"
         :offline-message="offlineMessage"
         :is-connecting="isConnecting"
+        :conversas="conversas"
         @minimize="minimize"
         @close="close"
+        @conversa-selecionada="handleConversaSelecionada"
+        @nova-conversa="handleNovaConversa"
       />
     </Transition>
     
@@ -209,6 +212,16 @@ onMounted(() => {
 onUnmounted(() => {
   socketService.disconnect();
 });
+
+function handleConversaSelecionada(conversa) {
+  console.log('Widget: Conversa selecionada:', conversa);
+}
+
+async function handleNovaConversa(conversa) {
+  console.log('Widget: Nova conversa criada:', conversa);
+  // Recarregar lista de conversas
+  await retryConnection();
+}
 
 // Expor métodos para API externa
 defineExpose({
