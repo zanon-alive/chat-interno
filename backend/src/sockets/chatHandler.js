@@ -199,7 +199,7 @@ module.exports = (io, socket) => {
   socket.on('messages:read', async (data) => {
     try {
       const { conversaId } = data;
-      const { userId } = socket;
+      const { userId, instanciaId } = socket;
 
       // Atualizar ultima_leitura
       await ParticipanteConversa.update(
@@ -212,7 +212,18 @@ module.exports = (io, socket) => {
         }
       );
 
+      // Confirmar para o usuário que marcou
       socket.emit('messages:marked_read', { conversaId });
+
+      // Notificar todos na conversa que as mensagens foram lidas (para atualizar UI)
+      const roomName = `instancia-${instanciaId}:conversa-${conversaId}`;
+      io.to(roomName).emit('messages:read_by', { 
+        conversaId, 
+        userId,
+        timestamp: new Date()
+      });
+
+      logger.info(`Mensagens marcadas como lidas: usuário ${userId} -> conversa ${conversaId}`);
 
     } catch (error) {
       logger.error('Erro ao marcar mensagens como lidas:', error);

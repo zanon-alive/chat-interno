@@ -158,6 +158,13 @@ onMounted(async () => {
     chatStore.setUsuariosOnline(data.users);
   });
 
+  socketService.on('messages:read_by', (data) => {
+    // Se alguém (incluindo eu) leu mensagens, limpar badge
+    if (data.userId === authStore.usuario?.id) {
+      chatStore.limparBadge(data.conversaId);
+    }
+  });
+
   // Buscar usuários online
   socketService.getOnlineUsers();
 });
@@ -168,6 +175,7 @@ onUnmounted(() => {
   socketService.off('user:online');
   socketService.off('user:offline');
   socketService.off('presence:online_users');
+  socketService.off('messages:read_by');
 });
 
 async function selecionarConversa(conversa) {
