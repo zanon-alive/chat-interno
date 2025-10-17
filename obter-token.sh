@@ -3,8 +3,8 @@
 # Script para obter token JWT válido
 # Uso: ./obter-token.sh [email] [senha]
 
-EMAIL="${1:-pedro.oliveira@empresademo.com}"
-SENHA="${2:-User@123456}"
+EMAIL="${1:-joao.silva@empresademo.com}"
+SENHA="${2:-Admin@123456}"
 API_URL="${3:-http://localhost:3000}"
 
 echo "╔════════════════════════════════════════════════════════════════╗"

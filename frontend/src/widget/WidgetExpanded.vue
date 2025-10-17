@@ -82,7 +82,7 @@
         
         <!-- Conversa Aberta -->
         <div v-else class="conversa-aberta">
-          <ChatView :embedded="true" :conversa-id="conversaSelecionada.id" />
+          <WidgetChat :conversa="conversaSelecionada" :user-id="userId" />
         </div>
       </div>
     </div>
@@ -99,7 +99,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import ChatView from '../views/chat/Chat.vue';
+import WidgetChat from './WidgetChat.vue';
 import NovaConversaModal from '../components/chat/NovaConversaModal.vue';
 
 const props = defineProps({
@@ -122,6 +122,10 @@ const props = defineProps({
   conversas: {
     type: Array,
     default: () => []
+  },
+  userId: {
+    type: Number,
+    required: true
   }
 });
 
@@ -166,8 +170,8 @@ function voltarParaLista() {
 function getNomeConversa(conversa) {
   if (conversa.nome_conversa) return conversa.nome_conversa;
   
-  // Para 1-on-1, pegar nome do outro participante
-  const outros = conversa.participantes?.filter(p => !p.is_current_user);
+  // Para 1-on-1, pegar nome do OUTRO participante (não o usuário logado)
+  const outros = conversa.participantes?.filter(p => p.id !== props.userId);
   return outros?.[0]?.nome_completo || 'Conversa';
 }
 

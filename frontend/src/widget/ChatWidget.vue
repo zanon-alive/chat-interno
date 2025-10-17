@@ -7,6 +7,7 @@
         :offline-message="offlineMessage"
         :is-connecting="isConnecting"
         :conversas="conversas"
+        :user-id="userId"
         @minimize="minimize"
         @close="close"
         @conversa-selecionada="handleConversaSelecionada"
@@ -64,6 +65,7 @@ const emit = defineEmits(['ready', 'open', 'close', 'message', 'error']);
 // State (SEM usar stores para evitar conflitos)
 const isExpanded = ref(!props.minimized);
 const conversas = ref([]);
+const userId = ref(null);
 const totalNaoLidas = computed(() => {
   return conversas.value.reduce((total, conv) => total + (conv.mensagens_nao_lidas || 0), 0);
 });
@@ -103,6 +105,18 @@ async function init() {
     } catch (socketError) {
       console.warn('⚠️ Erro ao conectar Socket.IO:', socketError);
       // Continuar mesmo sem Socket.IO
+    }
+    
+    // Decodificar token para obter userId
+    try {
+      const tokenParts = props.token.split('.');
+      if (tokenParts.length === 3) {
+        const payload = JSON.parse(atob(tokenParts[1]));
+        userId.value = payload.userId || payload.id;
+        console.log('👤 Widget: User ID:', userId.value);
+      }
+    } catch (e) {
+      console.warn('⚠️ Não foi possível decodificar token:', e);
     }
     
     // Tentar carregar conversas usando API sem redirecionamento
