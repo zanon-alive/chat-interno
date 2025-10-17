@@ -2,7 +2,7 @@
 
 **Data:** 17/10/2025  
 **Versão:** v1.2-MVP  
-**Commits de Melhorias:** 7  
+**Commits de Melhorias:** 8  
 
 ---
 
@@ -574,9 +574,9 @@ const mensagemCompleta = {
 
 | Área | Melhorias |
 |------|-----------|
-| **Chat** | 6 |
+| **Chat** | 7 |
 | **Frontend Geral** | 3 |
-| **Backend** | 2 |
+| **Backend** | 3 |
 | **Documentação** | 2 |
 
 ### Impacto:
@@ -615,9 +615,9 @@ const mensagemCompleta = {
 
 ## 📝 ARQUIVOS MODIFICADOS
 
-**Total:** 24 arquivos
+**Total:** 25 arquivos
 
-**Backend (4):**
+**Backend (5):**
 - `src/sockets/chatHandler.js`
 - `src/controllers/chat/usuarioController.js` (novo)
 - `src/routes/chat.routes.js`
@@ -649,7 +649,7 @@ const mensagemCompleta = {
 
 ## 🚀 COMMITS
 
-**Total:** 7 commits de melhorias
+**Total:** 8 commits de melhorias
 
 1. `bcf495d` - Correção v-model Vue 3
 2. `fdb1291` - Notificações + busca + auto-scroll
@@ -658,12 +658,13 @@ const mensagemCompleta = {
 5. `31b8c91` - Resumo final
 6. `35bb9bf` - Filtro de permissões
 7. `63f3175` - Tratamento de erro + alinhamento mensagens
+8. `c6228bc` - Remoção automática de badge ao responder
 
 ---
 
 ## ✨ CONCLUSÃO
 
-**11 melhorias implementadas com sucesso!**
+**12 melhorias implementadas com sucesso!**
 
 O sistema agora está:
 - ✅ **100% funcional** sem erros
@@ -674,6 +675,152 @@ O sistema agora está:
 - ✅ **Documentado** extensivamente
 
 **Pronto para uso em produção!** 🎉
+
+---
+
+---
+
+### **Melhoria 12: Remoção Automática de Badge ao Responder** 🔔
+
+**Data:** 17/10/2025  
+**Commit:** `c6228bc`
+
+**Problema:**
+- Badge de mensagens não lidas permanecia mesmo após:
+  - Clicar na conversa
+  - Enviar mensagem de resposta
+- Usuário via "3 não lidas" mesmo depois de responder
+- Experiência confusa e não intuitiva
+
+**Solução Backend:**
+```javascript
+// chatHandler.js
+socket.on('messages:read', async (data) => {
+  // ... atualizar ultima_leitura ...
+  
+  // Confirmar para o usuário
+  socket.emit('messages:marked_read', { conversaId });
+  
+  // ✅ Broadcast para todos na room
+  const roomName = `instancia-${instanciaId}:conversa-${conversaId}`;
+  io.to(roomName).emit('messages:read_by', { 
+    conversaId, 
+    userId,
+    timestamp: new Date()
+  });
+  
+  logger.info(`Mensagens marcadas como lidas: usuário ${userId} -> conversa ${conversaId}`);
+});
+```
+
+**Solução Frontend:**
+```javascript
+// store/chat.js
+function limparBadge(conversaId) {
+  const conversa = conversas.value.find(c => c.id === conversaId);
+  if (conversa) {
+    conversa.mensagens_nao_lidas = 0;
+    console.log(`🔕 Badge removido da conversa ${conversaId}`);
+  }
+}
+
+async function selecionarConversa(conversa) {
+  // ... código existente ...
+  
+  // Marcar como lida
+  socketService.markAsRead(conversa.id);
+  
+  // ✅ Limpar badge localmente (otimista)
+  limparBadge(conversa.id);
+}
+
+function enviarMensagem(conversaId, conteudo, onSuccess, onError) {
+  socketService.sendMessage(
+    conversaId, 
+    conteudo,
+    (response) => {
+      console.log('✅ Mensagem enviada com sucesso');
+      
+      // ✅ Limpar badge ao enviar mensagem de resposta
+      limparBadge(conversaId);
+      
+      if (onSuccess) onSuccess(response);
+    },
+    (error) => { /* ... */ }
+  );
+}
+
+// Chat.vue - Escutar evento do backend
+socketService.on('messages:read_by', (data) => {
+  if (data.userId === authStore.usuario?.id) {
+    chatStore.limparBadge(data.conversaId);
+  }
+});
+```
+
+**Fluxo Completo:**
+
+**Cenário 1: Clicar na Conversa**
+```
+1. Usuário clica em conversa com badge "3"
+   ↓
+2. selecionarConversa(conversa) executado
+   ↓
+3. socketService.markAsRead(conversaId) enviado
+   ↓
+4. limparBadge(conversaId) executado (otimista)
+   ↓
+5. Badge some IMEDIATAMENTE
+   ↓
+6. Backend atualiza ultima_leitura
+   ↓
+7. Backend emite messages:read_by
+   ↓
+8. Frontend confirma (badge já sumiu)
+```
+
+**Cenário 2: Enviar Mensagem de Resposta**
+```
+1. Usuário abre conversa com badge "2"
+   ↓
+2. Badge já sumiu (Cenário 1)
+   ↓
+3. Usuário digita e envia resposta
+   ↓
+4. onSuccess callback executado
+   ↓
+5. limparBadge(conversaId) garantido
+   ↓
+6. Badge permanece zerado
+```
+
+**Resultado:**
+- ✅ Badge some ao clicar na conversa
+- ✅ Badge some ao enviar resposta
+- ✅ Update otimista (UI instantânea)
+- ✅ Confirmação do backend
+- ✅ Log útil: `🔕 Badge removido da conversa X`
+- ✅ Experiência fluida e intuitiva
+
+**Arquivos:**
+- `backend/src/sockets/chatHandler.js`
+- `frontend/src/store/chat.js`
+- `frontend/src/views/chat/Chat.vue`
+
+---
+
+## 📊 ESTATÍSTICAS DAS MELHORIAS
+
+### Por Categoria:
+
+| Categoria | Quantidade |
+|-----------|-----------|
+| **Correções de Bugs** | 2 |
+| **Novas Funcionalidades** | 6 |
+| **UI/UX** | 5 |
+| **Documentação** | 2 |
+| **Segurança/Permissões** | 1 |
+| **Total** | **12 melhorias** |
 
 ---
 
