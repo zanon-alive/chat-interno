@@ -1,12 +1,15 @@
 <template>
   <div id="app">
-    <router-view />
+    <MainLayout>
+      <router-view />
+    </MainLayout>
   </div>
 </template>
 
 <script setup>
 import { onMounted } from 'vue';
 import { useAuthStore } from './store/auth';
+import MainLayout from './components/layout/MainLayout.vue';
 
 const authStore = useAuthStore();
 

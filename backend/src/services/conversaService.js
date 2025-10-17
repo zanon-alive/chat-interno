@@ -144,7 +144,14 @@ class ConversaService {
       throw new AppError('Usuário não encontrado ou inativo', 404);
     }
 
-    // TODO: Validar permissão de comunicação aqui (Fase futura)
+    // Validar permissão de comunicação
+    const permissaoService = require('./permissaoService');
+    const podeComunicar = await permissaoService.podeComunicar(userId, participanteId, instanciaId);
+    
+    if (!podeComunicar) {
+      logger.warn(`Tentativa de criar conversa sem permissão: ${userId} -> ${participanteId}`);
+      throw new AppError('Você não tem permissão para conversar com este usuário', 403);
+    }
 
     // Criar conversa
     const conversa = await Conversa.create({

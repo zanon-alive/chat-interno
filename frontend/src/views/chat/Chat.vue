@@ -1,10 +1,11 @@
 <template>
   <div class="chat-container">
     <div class="chat-header">
-      <h2>Chat Interno</h2>
-      <div class="user-info">
-        <span>{{ authStore.usuario?.nome_completo }}</span>
-        <button @click="handleLogout" class="btn-logout">Sair</button>
+      <h2>💬 Conversas</h2>
+      <div class="header-actions">
+        <button @click="showNovaConversa = true" class="btn-nova-conversa">
+          + Nova Conversa
+        </button>
       </div>
     </div>
 
@@ -70,6 +71,12 @@
         </template>
       </div>
     </div>
+
+    <!-- Modal Nova Conversa -->
+    <NovaConversaModal 
+      v-model="showNovaConversa" 
+      @criado="handleConversaCriada"
+    />
   </div>
 </template>
 
@@ -79,12 +86,14 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../store/auth';
 import { useChatStore } from '../../store/chat';
 import socketService from '../../services/socketService';
+import NovaConversaModal from '../../components/chat/NovaConversaModal.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const chatStore = useChatStore();
 
 const novaMensagem = ref('');
+const showNovaConversa = ref(false);
 
 onMounted(async () => {
   // Carregar conversas
@@ -153,6 +162,12 @@ async function handleLogout() {
   chatStore.limpar();
   router.push('/login');
 }
+
+async function handleConversaCriada(conversa) {
+  // Atualizar lista e selecionar
+  await chatStore.carregarConversas();
+  await chatStore.selecionarConversa(conversa);
+}
 </script>
 
 <style scoped>
@@ -169,29 +184,36 @@ async function handleLogout() {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-.user-info {
+.chat-header h2 {
+  color: #333;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.header-actions {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
-.btn-logout {
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.2);
+.btn-nova-conversa {
+  padding: 0.6rem 1.2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
   border-radius: 6px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: transform 0.2s;
 }
 
-.btn-logout:hover {
-  background: rgba(255, 255, 255, 0.3);
+.btn-nova-conversa:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .chat-content {
