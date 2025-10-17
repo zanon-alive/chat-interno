@@ -3,6 +3,9 @@
     <div class="chat-header">
       <h2>💬 Conversas</h2>
       <div class="header-actions">
+        <button @click="showBusca = true" class="btn-busca" title="Buscar mensagens">
+          🔍
+        </button>
         <button @click="showNovaConversa = true" class="btn-nova-conversa">
           + Nova Conversa
         </button>
@@ -78,6 +81,12 @@
       v-model="showNovaConversa" 
       @criado="handleConversaCriada"
     />
+
+    <!-- Modal Busca de Mensagens -->
+    <BuscaMensagensModal
+      v-model="showBusca"
+      @mensagem-selecionada="handleMensagemSelecionada"
+    />
   </div>
 </template>
 
@@ -89,6 +98,7 @@ import { useChatStore } from '../../store/chat';
 import socketService from '../../services/socketService';
 import { useNotification } from '../../composables/useNotification';
 import NovaConversaModal from '../../components/chat/NovaConversaModal.vue';
+import BuscaMensagensModal from '../../components/chat/BuscaMensagensModal.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -97,6 +107,7 @@ const { requestPermission, showMessageNotification } = useNotification();
 
 const novaMensagem = ref('');
 const showNovaConversa = ref(false);
+const showBusca = ref(false);
 const mensagensContainer = ref(null);
 
 onMounted(async () => {
@@ -200,6 +211,16 @@ async function handleConversaCriada(conversa) {
   await chatStore.carregarConversas();
   await chatStore.selecionarConversa(conversa);
 }
+
+async function handleMensagemSelecionada(mensagem) {
+  // Encontrar a conversa da mensagem
+  const conversa = chatStore.conversas.find(c => c.id === mensagem.id_conversa);
+  if (conversa) {
+    await chatStore.selecionarConversa(conversa);
+    // TODO: Scroll para a mensagem específica
+    nextTick(() => scrollToBottom());
+  }
+}
 </script>
 
 <style scoped>
@@ -246,6 +267,22 @@ async function handleConversaCriada(conversa) {
 .btn-nova-conversa:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-busca {
+  padding: 0.6rem 0.9rem;
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  border: 1px solid #667eea;
+  border-radius: 6px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-busca:hover {
+  background: rgba(102, 126, 234, 0.2);
+  transform: scale(1.05);
 }
 
 .chat-content {
