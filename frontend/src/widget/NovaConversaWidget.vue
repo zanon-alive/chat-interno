@@ -7,14 +7,20 @@
       </div>
 
       <div class="modal-body">
-        <!-- Busca -->
-        <div class="busca-container">
-          <input
-            v-model="busca"
-            type="text"
-            placeholder="🔍 Buscar usuário..."
-            class="input-busca"
-          />
+        <!-- Tabs -->
+        <div class="tabs">
+          <button 
+            :class="['tab', { active: tipo === 'individual' }]"
+            @click="tipo = 'individual'"
+          >
+            Individual
+          </button>
+          <button 
+            :class="['tab', { active: tipo === 'grupo' }]"
+            @click="tipo = 'grupo'"
+          >
+            Grupo
+          </button>
         </div>
 
         <!-- Loading -->
@@ -27,26 +33,102 @@
           {{ error }}
         </div>
 
-        <!-- Lista de Usuários -->
-        <div v-else class="usuarios-lista">
-          <div
-            v-for="usuario in usuariosFiltrados"
-            :key="usuario.id"
-            class="usuario-item"
-            @click="selecionarUsuario(usuario)"
-          >
-            <div class="usuario-avatar">
-              {{ usuario.nome_completo.charAt(0).toUpperCase() }}
+        <!-- Individual -->
+        <div v-else-if="tipo === 'individual'" class="form-section">
+          <div class="busca-container">
+            <input
+              v-model="busca"
+              type="text"
+              placeholder="🔍 Buscar usuário..."
+              class="input-busca"
+            />
+          </div>
+
+          <div class="usuarios-lista">
+            <div
+              v-for="usuario in usuariosFiltrados"
+              :key="usuario.id"
+              class="usuario-item"
+              @click="selecionarUsuario(usuario)"
+            >
+              <div class="usuario-avatar">
+                {{ usuario.nome_completo.charAt(0).toUpperCase() }}
+              </div>
+              <div class="usuario-info">
+                <strong>{{ usuario.nome_completo }}</strong>
+                <p>{{ usuario.email }}</p>
+              </div>
             </div>
-            <div class="usuario-info">
-              <strong>{{ usuario.nome_completo }}</strong>
-              <p>{{ usuario.email }}</p>
+
+            <div v-if="usuariosFiltrados.length === 0" class="empty">
+              Nenhum usuário encontrado
+            </div>
+          </div>
+        </div>
+
+        <!-- Grupo -->
+        <div v-else class="form-section">
+          <div class="form-group">
+            <label>Nome do Grupo *</label>
+            <input 
+              v-model="nomeGrupo" 
+              type="text" 
+              placeholder="Ex: Equipe de Projetos"
+              class="input-busca"
+            />
+          </div>
+
+          <div class="busca-container">
+            <input
+              v-model="busca"
+              type="text"
+              placeholder="🔍 Buscar participantes..."
+              class="input-busca"
+            />
+          </div>
+
+          <div class="usuarios-lista">
+            <div
+              v-for="usuario in usuariosFiltrados"
+              :key="usuario.id"
+              class="usuario-item checkbox-item"
+              @click="toggleSelecionado(usuario)"
+            >
+              <input 
+                type="checkbox" 
+                :checked="usuariosSelecionados.includes(usuario.id)"
+                @click.stop="toggleSelecionado(usuario)"
+                class="usuario-checkbox"
+              />
+              <div class="usuario-avatar">
+                {{ usuario.nome_completo.charAt(0).toUpperCase() }}
+              </div>
+              <div class="usuario-info">
+                <strong>{{ usuario.nome_completo }}</strong>
+                <p>{{ usuario.email }}</p>
+              </div>
+            </div>
+
+            <div v-if="usuariosFiltrados.length === 0" class="empty">
+              Nenhum usuário encontrado
             </div>
           </div>
 
-          <div v-if="usuariosFiltrados.length === 0" class="empty">
-            Nenhum usuário encontrado
+          <div v-if="usuariosSelecionados.length > 0" class="selecionados">
+            ✅ {{ usuariosSelecionados.length }} participante(s) selecionado(s)
           </div>
+        </div>
+
+        <!-- Botão Criar Grupo -->
+        <div v-if="tipo === 'grupo'" class="modal-footer">
+          <button @click="fechar" class="btn-cancelar">Cancelar</button>
+          <button 
+            @click="criarGrupo" 
+            :disabled="!podeCriarGrupo || criando"
+            class="btn-criar"
+          >
+            {{ criando ? 'Criando...' : 'Criar Grupo' }}
+          </button>
         </div>
       </div>
     </div>
@@ -68,6 +150,9 @@ const busca = ref('');
 const loading = ref(false);
 const error = ref(null);
 const criando = ref(false);
+const tipo = ref('individual'); // 'individual' ou 'grupo'
+const nomeGrupo = ref('');
+const usuariosSelecionados = ref([]);
 
 const usuariosFiltrados = computed(() => {
   if (!busca.value) return usuarios.value;
@@ -77,6 +162,10 @@ const usuariosFiltrados = computed(() => {
     u.nome_completo.toLowerCase().includes(termo) ||
     u.email.toLowerCase().includes(termo)
   );
+});
+
+const podeCriarGrupo = computed(() => {
+  return nomeGrupo.value.trim().length >= 3 && usuariosSelecionados.value.length >= 2;
 });
 
 // Se abrir com modelValue true, carregar imediatamente
@@ -139,6 +228,40 @@ async function selecionarUsuario(usuario) {
   }
 }
 
+function toggleSelecionado(usuario) {
+  const index = usuariosSelecionados.value.indexOf(usuario.id);
+  if (index > -1) {
+    usuariosSelecionados.value.splice(index, 1);
+  } else {
+    usuariosSelecionados.value.push(usuario.id);
+  }
+}
+
+async function criarGrupo() {
+  if (!podeCriarGrupo.value || criando.value) return;
+  
+  criando.value = true;
+  error.value = null;
+
+  try {
+    const response = await apiWidget.post('/chat/conversas/grupo', {
+      nome: nomeGrupo.value.trim(),
+      participantes: usuariosSelecionados.value
+    });
+    
+    const conversa = response.data?.data || response.data;
+    
+    emit('conversa-criada', conversa);
+    fechar();
+  } catch (err) {
+    console.error('Erro ao criar grupo no widget:', err);
+    error.value = err.response?.data?.message || err.message || 'Erro ao criar grupo';
+    alert('❌ Erro ao criar grupo:\n\n' + error.value);
+  } finally {
+    criando.value = false;
+  }
+}
+
 function fechar() {
   emit('update:modelValue', false);
 }
@@ -147,10 +270,44 @@ function limpar() {
   busca.value = '';
   usuarios.value = [];
   error.value = null;
+  tipo.value = 'individual';
+  nomeGrupo.value = '';
+  usuariosSelecionados.value = [];
 }
 </script>
 
 <style scoped>
+.tabs {
+  display: flex;
+  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 1.5rem;
+  gap: 0;
+}
+
+.tab {
+  flex: 1;
+  padding: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #666;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.tab.active {
+  color: #667eea;
+  border-bottom: 3px solid #667eea;
+  margin-bottom: -2px;
+  font-weight: 600;
+}
+
+.tab:hover:not(.active) {
+  color: #555;
+  background: #f8f9fa;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -231,6 +388,24 @@ function limpar() {
   padding: 1.5rem;
 }
 
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.9rem;
+}
+
 .busca-container {
   margin-bottom: 1rem;
 }
@@ -286,6 +461,18 @@ function limpar() {
   transform: translateX(4px);
 }
 
+.usuario-item.checkbox-item {
+  cursor: pointer;
+  user-select: none;
+}
+
+.usuario-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
 .usuario-avatar {
   width: 40px;
   height: 40px;
@@ -318,6 +505,60 @@ function limpar() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.selecionados {
+  padding: 0.75rem 1rem;
+  background: #e7f3ff;
+  color: #0066cc;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.btn-cancelar,
+.btn-criar {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancelar {
+  background: #f8f9fa;
+  color: #495057;
+}
+
+.btn-cancelar:hover {
+  background: #e9ecef;
+}
+
+.btn-criar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-criar:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-criar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>
 
