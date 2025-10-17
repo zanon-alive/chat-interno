@@ -49,8 +49,24 @@ class SocketService {
     this.socket.emit('chat:leave', { conversaId });
   }
 
-  sendMessage(conversaId, conteudo) {
-    this.socket.emit('message:send', { conversaId, conteudo });
+  sendMessage(conversaId, conteudo, onSuccess, onError) {
+    if (!this.socket || !this.socket.connected) {
+      if (onError) {
+        onError(new Error('Não conectado ao servidor. Verifique sua conexão.'));
+      }
+      return;
+    }
+
+    // Enviar com confirmação (acknowledgment)
+    this.socket.emit('message:send', { conversaId, conteudo }, (response) => {
+      if (response && response.error) {
+        if (onError) {
+          onError(new Error(response.error));
+        }
+      } else if (onSuccess) {
+        onSuccess(response);
+      }
+    });
   }
 
   // Indicador de digitação

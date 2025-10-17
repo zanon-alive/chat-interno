@@ -67,10 +67,18 @@
               type="text"
               placeholder="Digite sua mensagem..."
               @keyup.enter="enviarMensagem"
+              :disabled="enviando"
             />
-            <button @click="enviarMensagem" :disabled="!novaMensagem.trim()">
-              Enviar
+            <button 
+              @click="enviarMensagem" 
+              :disabled="!novaMensagem.trim() || enviando"
+              :class="{ 'enviando': enviando }"
+            >
+              {{ enviando ? 'Enviando...' : 'Enviar' }}
             </button>
+          </div>
+          <div v-if="erroEnvio" class="erro-envio">
+            ⚠️ {{ erroEnvio }}
           </div>
         </template>
       </div>
@@ -109,6 +117,8 @@ const novaMensagem = ref('');
 const showNovaConversa = ref(false);
 const showBusca = ref(false);
 const mensagensContainer = ref(null);
+const enviando = ref(false);
+const erroEnvio = ref(null);
 
 onMounted(async () => {
   // Solicitar permissão para notificações
@@ -166,14 +176,34 @@ async function selecionarConversa(conversa) {
   nextTick(() => scrollToBottom());
 }
 
-function enviarMensagem() {
-  if (!novaMensagem.value.trim() || !chatStore.conversaAtiva) return;
+async function enviarMensagem() {
+  if (!novaMensagem.value.trim() || !chatStore.conversaAtiva || enviando.value) return;
 
-  chatStore.enviarMensagem(chatStore.conversaAtiva.id, novaMensagem.value.trim());
-  novaMensagem.value = '';
-  
-  // Auto-scroll após enviar
-  nextTick(() => scrollToBottom());
+  const mensagemTexto = novaMensagem.value.trim();
+  enviando.value = true;
+  erroEnvio.value = null;
+
+  chatStore.enviarMensagem(
+    chatStore.conversaAtiva.id, 
+    mensagemTexto,
+    // onSuccess
+    () => {
+      novaMensagem.value = '';
+      enviando.value = false;
+      // Auto-scroll após enviar
+      nextTick(() => scrollToBottom());
+    },
+    // onError
+    (error) => {
+      enviando.value = false;
+      erroEnvio.value = error.message || 'Não foi possível enviar a mensagem. Verifique sua conexão.';
+      
+      // Mostrar alerta
+      alert('❌ Erro ao enviar mensagem\n\n' + erroEnvio.value + '\n\nTente novamente.');
+      
+      console.error('Erro ao enviar:', error);
+    }
+  );
 }
 
 function scrollToBottom() {
@@ -500,6 +530,32 @@ async function handleMensagemSelecionada(mensagem) {
 .chat-input button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.chat-input button.enviando {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.erro-envio {
+  padding: 0.75rem 1rem;
+  background-color: #fee;
+  color: #c33;
+  border-top: 1px solid #fcc;
+  font-size: 0.9rem;
+  text-align: center;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .test-users {

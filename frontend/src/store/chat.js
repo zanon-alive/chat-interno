@@ -113,9 +113,20 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  function enviarMensagem(conversaId, conteudo) {
-    // Enviar via Socket.IO
-    socketService.sendMessage(conversaId, conteudo);
+  function enviarMensagem(conversaId, conteudo, onSuccess, onError) {
+    // Enviar via Socket.IO com callbacks de sucesso/erro
+    socketService.sendMessage(
+      conversaId, 
+      conteudo,
+      (response) => {
+        console.log('✅ Mensagem enviada com sucesso');
+        if (onSuccess) onSuccess(response);
+      },
+      (error) => {
+        console.error('❌ Erro ao enviar mensagem:', error);
+        if (onError) onError(error);
+      }
+    );
   }
 
   function adicionarMensagem(mensagem) {
