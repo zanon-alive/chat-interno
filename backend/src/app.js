@@ -41,7 +41,7 @@ app.get('/api/health', (req, res) => {
 // Rotas
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/superadmin', require('./routes/superadmin.routes'));
-// app.use('/api/admin', require('./routes/admin.routes'));
+app.use('/api/admin', require('./routes/admin.routes'));
 // app.use('/api/chat', require('./routes/chat.routes'));
 
 // Rota 404

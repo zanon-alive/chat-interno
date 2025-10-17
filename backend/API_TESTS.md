@@ -199,18 +199,92 @@ curl -X GET http://localhost:3000/api/superadmin/instancias/1/estatisticas \
 
 ---
 
+## Admin Cliente - Equipes (Implementado ✅)
+
+### Listar Equipes
+```bash
+curl -X GET http://localhost:3000/api/admin/equipes \
+  -H "Authorization: Bearer TOKEN_ADMIN_CLIENTE"
+```
+
+### Criar Equipe
+```bash
+curl -X POST http://localhost:3000/api/admin/equipes \
+  -H "Authorization: Bearer TOKEN_ADMIN_CLIENTE" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome": "Marketing",
+    "descricao": "Equipe de marketing e vendas"
+  }'
+```
+
+### Atualizar Equipe
+```bash
+curl -X PUT http://localhost:3000/api/admin/equipes/1 \
+  -H "Authorization: Bearer TOKEN_ADMIN_CLIENTE" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome": "Marketing Digital",
+    "descricao": "Equipe atualizada"
+  }'
+```
+
+### Estatísticas da Equipe
+```bash
+curl -X GET http://localhost:3000/api/admin/equipes/1/estatisticas \
+  -H "Authorization: Bearer TOKEN_ADMIN_CLIENTE"
+```
+
+## Admin Cliente - Usuários (Implementado ✅)
+
+### Listar Usuários
+```bash
+curl -X GET "http://localhost:3000/api/admin/usuarios?status=ativo" \
+  -H "Authorization: Bearer TOKEN_ADMIN_CLIENTE"
+```
+
+### Criar Usuário
+```bash
+curl -X POST http://localhost:3000/api/admin/usuarios \
+  -H "Authorization: Bearer TOKEN_ADMIN_CLIENTE" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome_completo": "Novo Usuário",
+    "email": "novo@empresa.com",
+    "senha": "User@123456",
+    "nivel_permissao": "equipe",
+    "id_equipe": 1,
+    "id_supervisor": 3,
+    "status": "ativo"
+  }'
+```
+
+### Atualizar Usuário
+```bash
+curl -X PUT http://localhost:3000/api/admin/usuarios/4 \
+  -H "Authorization: Bearer TOKEN_ADMIN_CLIENTE" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome_completo": "Pedro Oliveira Junior",
+    "id_supervisor": 3
+  }'
+```
+
+### Obter Hierarquia (Organograma)
+```bash
+curl -X GET http://localhost:3000/api/admin/usuarios/hierarquia \
+  -H "Authorization: Bearer TOKEN_ADMIN_CLIENTE"
+```
+
+### Estatísticas de Usuários
+```bash
+curl -X GET http://localhost:3000/api/admin/usuarios/estatisticas \
+  -H "Authorization: Bearer TOKEN_ADMIN_CLIENTE"
+```
+
+---
+
 ## Próximos Endpoints a Implementar
-
-### Admin Cliente
-- [ ] GET /api/admin/equipes
-- [ ] POST /api/admin/equipes
-- [ ] PUT /api/admin/equipes/:id
-- [ ] DELETE /api/admin/equipes/:id
-
-- [ ] GET /api/admin/usuarios
-- [ ] POST /api/admin/usuarios
-- [ ] PUT /api/admin/usuarios/:id
-- [ ] DELETE /api/admin/usuarios/:id
 
 ### Chat
 - [ ] GET /api/chat/conversas
