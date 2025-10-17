@@ -3,6 +3,9 @@
     <Transition name="fade">
       <WidgetExpanded
         v-if="isExpanded"
+        :is-offline="isOffline"
+        :offline-message="offlineMessage"
+        :is-connecting="isConnecting"
         @minimize="minimize"
         @close="close"
       />
@@ -12,6 +15,9 @@
       v-if="!isExpanded"
       :conversas="conversas"
       :total-nao-lidas="totalNaoLidas"
+      :is-offline="isOffline"
+      :offline-message="offlineMessage"
+      :is-connecting="isConnecting"
       @expand="expand"
     />
   </div>
@@ -51,7 +57,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['ready', 'open', 'close', 'message']);
+const emit = defineEmits(['ready', 'open', 'close', 'message', 'error']);
 
 // Pinia store
 const pinia = createPinia();
@@ -62,6 +68,9 @@ const authStore = useAuthStore(pinia);
 const isExpanded = ref(!props.minimized);
 const conversas = ref([]);
 const totalNaoLidas = computed(() => chatStore.totalNaoLidas);
+const isOffline = ref(false);
+const offlineMessage = ref('');
+const isConnecting = ref(true);
 
 // Methods
 function expand() {
@@ -81,26 +90,96 @@ function close() {
 
 async function init() {
   try {
+    isConnecting.value = true;
+    isOffline.value = false;
+    offlineMessage.value = '';
+    
     // Configurar token
     localStorage.setItem('token', props.token);
     
-    // Conectar Socket.IO
-    socketService.connect(props.token);
+    // Tentar conectar Socket.IO
+    try {
+      socketService.connect(props.token);
+      console.log('🔌 Tentando conectar ao servidor...');
+    } catch (socketError) {
+      console.warn('⚠️ Erro ao conectar Socket.IO:', socketError);
+      // Continuar mesmo sem Socket.IO
+    }
     
-    // Carregar conversas
-    await chatStore.carregarConversas();
-    conversas.value = chatStore.conversas;
+    // Tentar carregar conversas
+    try {
+      await chatStore.carregarConversas();
+      conversas.value = chatStore.conversas;
+      isOffline.value = false;
+      isConnecting.value = false;
+      
+      console.log('✅ Chat Widget inicializado com sucesso!');
+      emit('ready');
+    } catch (apiError) {
+      // API não está disponível
+      console.warn('⚠️ API não disponível:', apiError);
+      isOffline.value = true;
+      isConnecting.value = false;
+      offlineMessage.value = 'Chat temporariamente indisponível. Tente novamente mais tarde.';
+      
+      // Emitir evento de erro mas manter widget visível
+      emit('error', {
+        type: 'connection',
+        message: offlineMessage.value,
+        error: apiError
+      });
+      
+      // Widget ainda está "pronto" (visível) mesmo offline
+      emit('ready');
+    }
     
-    // Setup listeners
+    // Setup listeners (mesmo offline, preparar para quando conectar)
     socketService.on('message:new', (mensagem) => {
       chatStore.adicionarMensagem(mensagem);
       emit('message', mensagem);
     });
     
-    emit('ready');
-    console.log('✅ Chat Widget inicializado!');
+    socketService.on('connect', () => {
+      console.log('✅ Reconectado ao servidor!');
+      isOffline.value = false;
+      offlineMessage.value = '';
+      // Tentar recarregar conversas
+      retryConnection();
+    });
+    
+    socketService.on('disconnect', () => {
+      console.log('⚠️ Desconectado do servidor');
+      isOffline.value = true;
+      offlineMessage.value = 'Conexão perdida. Reconectando...';
+    });
+    
   } catch (error) {
-    console.error('❌ Erro ao inicializar widget:', error);
+    console.error('❌ Erro crítico ao inicializar widget:', error);
+    isOffline.value = true;
+    isConnecting.value = false;
+    offlineMessage.value = 'Erro ao carregar o chat. Recarregue a página.';
+    
+    emit('error', {
+      type: 'critical',
+      message: offlineMessage.value,
+      error
+    });
+    
+    // Mesmo com erro, emitir ready para widget aparecer
+    emit('ready');
+  }
+}
+
+async function retryConnection() {
+  try {
+    await chatStore.carregarConversas();
+    conversas.value = chatStore.conversas;
+    isOffline.value = false;
+    offlineMessage.value = '';
+    console.log('✅ Reconexão bem-sucedida!');
+  } catch (error) {
+    console.warn('⚠️ Falha na reconexão:', error);
+    setTimeout(retryConnection, 5000); // Tentar novamente em 5 segundos
   }
 }
 

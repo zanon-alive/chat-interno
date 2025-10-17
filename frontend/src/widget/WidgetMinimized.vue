@@ -10,7 +10,20 @@
       <span v-if="totalNaoLidas > 0" class="widget-badge">{{ totalNaoLidas }}</span>
     </div>
     
-    <div v-if="hasConversas" class="widget-preview">
+    <!-- Indicador de Conectando -->
+    <div v-if="isConnecting" class="widget-preview connecting">
+      <span class="loading-spinner">⏳</span>
+      <span>Conectando ao chat...</span>
+    </div>
+    
+    <!-- Indicador de Offline -->
+    <div v-else-if="isOffline" class="widget-preview offline">
+      <span class="offline-icon">⚠️</span>
+      <span class="offline-text">Chat indisponível</span>
+    </div>
+    
+    <!-- Preview Normal -->
+    <div v-else-if="hasConversas" class="widget-preview">
       <template v-if="conversas.length === 1">
         <!-- Uma única conversa -->
         <div class="preview-single">
@@ -32,6 +45,7 @@
       </template>
     </div>
     
+    <!-- Nenhuma conversa -->
     <div v-else class="widget-preview">
       <span class="preview-empty">Nenhuma conversa ativa</span>
     </div>
@@ -53,6 +67,18 @@ const props = defineProps({
   position: {
     type: String,
     default: 'bottom-right'
+  },
+  isOffline: {
+    type: Boolean,
+    default: false
+  },
+  offlineMessage: {
+    type: String,
+    default: ''
+  },
+  isConnecting: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -188,6 +214,41 @@ function expand() {
 .preview-empty {
   color: #adb5bd;
   font-style: italic;
+}
+
+.widget-preview.connecting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #667eea;
+  font-weight: 500;
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.widget-preview.offline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff3cd;
+  color: #856404;
+  font-weight: 500;
+  border-top-color: #ffc107;
+}
+
+.offline-icon {
+  font-size: 16px;
+}
+
+.offline-text {
+  flex: 1;
 }
 </style>
 

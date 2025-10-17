@@ -16,8 +16,29 @@
     </div>
     
     <div class="widget-content">
-      <!-- Reutilizar componente Chat.vue existente -->
-      <div class="chat-embedded">
+      <!-- Indicador de Conectando -->
+      <div v-if="isConnecting" class="status-message connecting">
+        <div class="status-icon">⏳</div>
+        <div class="status-text">
+          <h3>Conectando ao chat...</h3>
+          <p>Aguarde um momento</p>
+        </div>
+      </div>
+      
+      <!-- Indicador de Offline -->
+      <div v-else-if="isOffline" class="status-message offline">
+        <div class="status-icon">⚠️</div>
+        <div class="status-text">
+          <h3>Chat Temporariamente Indisponível</h3>
+          <p>{{ offlineMessage || 'Não foi possível conectar ao servidor. Tente novamente mais tarde.' }}</p>
+          <button @click="retry" class="btn-retry">
+            🔄 Tentar Novamente
+          </button>
+        </div>
+      </div>
+      
+      <!-- Chat Normal -->
+      <div v-else class="chat-embedded">
         <ChatView :embedded="true" />
       </div>
     </div>
@@ -32,6 +53,18 @@ const props = defineProps({
   position: {
     type: String,
     default: 'bottom-right'
+  },
+  isOffline: {
+    type: Boolean,
+    default: false
+  },
+  offlineMessage: {
+    type: String,
+    default: ''
+  },
+  isConnecting: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -47,6 +80,11 @@ function minimize() {
 
 function close() {
   emit('close');
+}
+
+function retry() {
+  // Recarregar a página ou tentar reconectar
+  window.location.reload();
 }
 </script>
 
@@ -164,6 +202,75 @@ function close() {
 
 .chat-embedded :deep(.main-chat) {
   display: none; /* Mostrar apenas no click em conversa */
+}
+
+/* Status Messages */
+.status-message {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  gap: 1.5rem;
+}
+
+.status-icon {
+  font-size: 4rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+.status-message.connecting .status-icon {
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.status-text h3 {
+  color: #2c3e50;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.status-text p {
+  color: #6c757d;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.status-message.offline {
+  background: #fff3cd;
+}
+
+.status-message.offline .status-text h3 {
+  color: #856404;
+}
+
+.btn-retry {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 1rem;
+}
+
+.btn-retry:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 /* Responsividade para mobile */
