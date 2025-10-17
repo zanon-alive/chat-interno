@@ -22,7 +22,14 @@
           <span class="timestamp">{{ formatarHora(mensagem.created_at) }}</span>
         </div>
         <div class="mensagem-conteudo">
-          {{ mensagem.conteudo_texto }}
+          <span class="texto">{{ mensagem.conteudo_texto }}</span>
+          <MessageStatus 
+            v-if="mensagem.id_remetente === userId"
+            :status="mensagem.status_entrega || 'enviada'"
+            :enviada-em="mensagem.created_at"
+            :entregue-em="mensagem.entregue_em"
+            :lida-em="mensagem.lida_em"
+          />
         </div>
       </div>
     </div>
@@ -52,9 +59,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import apiWidget from '../services/apiWidget';
 import socketService from '../services/socketService';
+import MessageStatus from '../components/chat/MessageStatus.vue';
 
 const props = defineProps({
   conversa: {
@@ -84,14 +92,77 @@ onMounted(async () => {
   // Entrar na room Socket.IO
   socketService.joinConversation(props.conversa.id);
   
+  // Marcar mensagens como entregues
+  marcarComoEntregue();
+  
+  // Marcar como lidas quando abrir
+  setTimeout(() => marcarComoLida(), 1000);
+  
   // Escutar novas mensagens
   socketService.on('message:new', (msg) => {
     if (msg.id_conversa === props.conversa.id) {
       mensagens.value.push(msg);
-      nextTick(() => scrollToBottom());
+      nextTick(() => {
+        scrollToBottom();
+        // Marcar como entregue e lida automaticamente
+        marcarMensagemEntregue(msg.id);
+        setTimeout(() => marcarMensagemLida(msg.id), 500);
+      });
+    }
+  });
+  
+  // Escutar atualizações de status
+  socketService.on('message:status_updated', (data) => {
+    const msg = mensagens.value.find(m => m.id === data.mensagemId);
+    if (msg) {
+      msg.status_entrega = data.status;
+      if (data.status === 'entregue') msg.entregue_em = data.entregue_em;
+      if (data.status === 'lida') msg.lida_em = data.lida_em;
+    }
+  });
+  
+  // Escutar quando conversa inteira é marcada como lida
+  socketService.on('conversation:messages_read', (data) => {
+    if (data.conversaId === props.conversa.id) {
+      // Atualizar badge localmente
+      props.conversa.mensagens_nao_lidas = 0;
     }
   });
 });
+
+onUnmounted(() => {
+  socketService.off('message:status_updated');
+  socketService.off('conversation:messages_read');
+});
+
+function marcarComoEntregue() {
+  mensagens.value.forEach(msg => {
+    if (msg.id_remetente !== props.userId && msg.status_entrega === 'enviada') {
+      marcarMensagemEntregue(msg.id);
+    }
+  });
+}
+
+function marcarComoLida() {
+  mensagens.value.forEach(msg => {
+    if (msg.id_remetente !== props.userId && msg.status_entrega !== 'lida') {
+      marcarMensagemLida(msg.id);
+    }
+  });
+  
+  // Marcar conversa inteira como lida (zera badge)
+  socketService.socket?.emit('conversation:mark_all_read', {
+    conversaId: props.conversa.id
+  });
+}
+
+function marcarMensagemEntregue(mensagemId) {
+  socketService.socket?.emit('message:delivered', { mensagemId });
+}
+
+function marcarMensagemLida(mensagemId) {
+  socketService.socket?.emit('message:read', { mensagemId });
+}
 
 async function carregarMensagens() {
   carregando.value = true;
@@ -229,6 +300,13 @@ function formatarHora(data) {
   word-wrap: break-word;
   font-size: 0.9rem;
   line-height: 1.4;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.mensagem-conteudo .texto {
+  flex: 1;
 }
 
 .chat-input {

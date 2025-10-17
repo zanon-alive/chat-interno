@@ -55,8 +55,15 @@
                 <span class="timestamp">{{ formatarData(mensagem.created_at) }}</span>
               </div>
               <div class="mensagem-conteudo">
-                {{ mensagem.conteudo_texto }}
+                <span class="texto">{{ mensagem.conteudo_texto }}</span>
                 <span v-if="mensagem.editada" class="editada-tag">(editada)</span>
+                <MessageStatus 
+                  v-if="mensagem.id_remetente === authStore.usuario?.id"
+                  :status="mensagem.status_entrega || 'enviada'"
+                  :enviada-em="mensagem.created_at"
+                  :entregue-em="mensagem.entregue_em"
+                  :lida-em="mensagem.lida_em"
+                />
               </div>
             </div>
           </div>
@@ -107,6 +114,7 @@ import socketService from '../../services/socketService';
 import { useNotification } from '../../composables/useNotification';
 import NovaConversaModal from '../../components/chat/NovaConversaModal.vue';
 import BuscaMensagensModal from '../../components/chat/BuscaMensagensModal.vue';
+import MessageStatus from '../../components/chat/MessageStatus.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -164,6 +172,24 @@ onMounted(async () => {
       chatStore.limparBadge(data.conversaId);
     }
   });
+  
+  // Escutar atualizações de status de mensagens
+  socketService.on('message:status_updated', (data) => {
+    // Atualizar status da mensagem localmente
+    const mensagensAtivas = chatStore.mensagensAtivas;
+    const msg = mensagensAtivas.find(m => m.id === data.mensagemId);
+    if (msg) {
+      msg.status_entrega = data.status;
+      if (data.status === 'entregue') msg.entregue_em = data.entregue_em;
+      if (data.status === 'lida') msg.lida_em = data.lida_em;
+    }
+  });
+  
+  socketService.on('conversation:messages_read', (data) => {
+    if (data.conversaId === chatStore.conversaAtiva?.id) {
+      chatStore.limparBadge(data.conversaId);
+    }
+  });
 
   // Buscar usuários online
   socketService.getOnlineUsers();
@@ -180,8 +206,16 @@ onUnmounted(() => {
 
 async function selecionarConversa(conversa) {
   await chatStore.selecionarConversa(conversa);
+  
   // Auto-scroll após carregar mensagens
   nextTick(() => scrollToBottom());
+  
+  // Marcar mensagens como lidas após 1 segundo
+  setTimeout(() => {
+    socketService.socket?.emit('conversation:mark_all_read', {
+      conversaId: conversa.id
+    });
+  }, 1000);
 }
 
 async function enviarMensagem() {
@@ -490,6 +524,14 @@ async function handleMensagemSelecionada(mensagem) {
 
 .mensagem-conteudo {
   word-wrap: break-word;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.mensagem-conteudo .texto {
+  flex: 1 1 auto;
 }
 
 .editada-tag {

@@ -73,6 +73,26 @@ module.exports = (sequelize, DataTypes) => {
     editada: {
       type: DataTypes.BOOLEAN,
       defaultValue: false
+    },
+    
+    // Status de entrega (WhatsApp-like)
+    status_entrega: {
+      type: DataTypes.ENUM('enviada', 'entregue', 'lida'),
+      defaultValue: 'enviada',
+      allowNull: false,
+      comment: 'Status de entrega: enviada (✓), entregue (✓✓), lida (✓✓ verde)'
+    },
+    
+    entregue_em: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'Data/hora que a mensagem foi entregue'
+    },
+    
+    lida_em: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'Data/hora que a mensagem foi lida'
     }
   }, {
     sequelize,
