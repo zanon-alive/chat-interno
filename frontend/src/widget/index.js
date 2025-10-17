@@ -57,7 +57,7 @@ window.ChatWidget = {
     container.id = 'chat-widget-root';
     document.body.appendChild(container);
 
-    // Criar app Vue
+    // Criar app Vue com props
     const app = createApp(ChatWidget, {
       token: finalConfig.token,
       apiUrl: finalConfig.apiUrl,
@@ -70,13 +70,17 @@ window.ChatWidget = {
     const pinia = createPinia();
     app.use(pinia);
 
-    // Listeners customizados
-    if (finalConfig.onReady) {
-      app.component('ChatWidget').emits.push('ready');
-    }
-
     // Mount
     widgetInstance = app.mount(container);
+    
+    // Armazenar callbacks para uso posterior
+    widgetInstance._callbacks = {
+      onReady: finalConfig.onReady,
+      onMessage: finalConfig.onMessage,
+      onOpen: finalConfig.onOpen,
+      onClose: finalConfig.onClose,
+      onError: finalConfig.onError
+    };
 
     // Aplicar cor customizada
     if (finalConfig.primaryColor && finalConfig.primaryColor !== '#667eea') {

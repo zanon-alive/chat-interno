@@ -190,6 +190,18 @@ onMounted(() => {
 onUnmounted(() => {
   socketService.disconnect();
 });
+
+// Expor métodos para API externa
+defineExpose({
+  expand,
+  minimize,
+  close,
+  isExpanded,
+  conversas,
+  totalNaoLidas,
+  isOffline,
+  retryConnection
+});
 </script>
 
 <style scoped>
