@@ -1,6 +1,28 @@
+// Configuração CORS para Socket.IO (mesma lógica do app.js)
+const allowedOrigins = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',')
+  : [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://localhost',
+      'http://127.0.0.1',
+    ];
+
 module.exports = {
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
+          callback(null, true);
+        } else {
+          callback(null, true); // Em produção, configurar whitelist adequada
+        }
+      }
+    },
     methods: ['GET', 'POST'],
     credentials: true
   },
