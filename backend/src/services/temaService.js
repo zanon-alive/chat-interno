@@ -20,7 +20,7 @@ class TemaService {
 
       // Se não existe tema, criar um com valores padrão
       if (!tema) {
-        tema = await this.criarTemaP​adrao(idInstancia);
+        tema = await this.criarTemaPadrao(idInstancia);
       }
 
       return tema;
