@@ -8,6 +8,13 @@ class EstatisticasController {
    */
   async obterGeral(req, res) {
     try {
+      if (!req.usuario || !req.usuario.id_instancia_chat) {
+        return res.status(400).json({
+          success: false,
+          error: 'Usuário ou instância não identificados'
+        });
+      }
+
       const idInstancia = req.usuario.id_instancia_chat;
       const estatisticas = await estatisticasService.obterGeraisAdmin(idInstancia);
 
@@ -30,6 +37,13 @@ class EstatisticasController {
    */
   async usuariosOnlinePorHora(req, res) {
     try {
+      if (!req.usuario || !req.usuario.id_instancia_chat) {
+        return res.status(400).json({
+          success: false,
+          error: 'Usuário ou instância não identificados'
+        });
+      }
+
       const idInstancia = req.usuario.id_instancia_chat;
       const dados = await estatisticasService.usuariosOnlinePorHora(idInstancia);
 
@@ -52,6 +66,13 @@ class EstatisticasController {
    */
   async conversasPorHora(req, res) {
     try {
+      if (!req.usuario || !req.usuario.id_instancia_chat) {
+        return res.status(400).json({
+          success: false,
+          error: 'Usuário ou instância não identificados'
+        });
+      }
+
       const idInstancia = req.usuario.id_instancia_chat;
       const dados = await estatisticasService.conversasPorHora(idInstancia);
 
@@ -74,6 +95,13 @@ class EstatisticasController {
    */
   async mensagensPorHora(req, res) {
     try {
+      if (!req.usuario || !req.usuario.id_instancia_chat) {
+        return res.status(400).json({
+          success: false,
+          error: 'Usuário ou instância não identificados'
+        });
+      }
+
       const idInstancia = req.usuario.id_instancia_chat;
       const dados = await estatisticasService.mensagensPorHora(idInstancia);
 
@@ -96,6 +124,13 @@ class EstatisticasController {
    */
   async equipesAtividade(req, res) {
     try {
+      if (!req.usuario || !req.usuario.id_instancia_chat) {
+        return res.status(400).json({
+          success: false,
+          error: 'Usuário ou instância não identificados'
+        });
+      }
+
       const idInstancia = req.usuario.id_instancia_chat;
       const dados = await estatisticasService.equipesAtividade(idInstancia);
 
@@ -118,6 +153,13 @@ class EstatisticasController {
    */
   async acessosConversas(req, res) {
     try {
+      if (!req.usuario || !req.usuario.id_instancia_chat) {
+        return res.status(400).json({
+          success: false,
+          error: 'Usuário ou instância não identificados'
+        });
+      }
+
       const idInstancia = req.usuario.id_instancia_chat;
       const { inicio, fim } = req.query;
 
@@ -147,6 +189,13 @@ class EstatisticasController {
    */
   async horariosPico(req, res) {
     try {
+      if (!req.usuario || !req.usuario.id_instancia_chat) {
+        return res.status(400).json({
+          success: false,
+          error: 'Usuário ou instância não identificados'
+        });
+      }
+
       const idInstancia = req.usuario.id_instancia_chat;
       const dias = parseInt(req.query.dias) || 7;
 
