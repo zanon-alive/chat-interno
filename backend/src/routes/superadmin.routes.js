@@ -5,6 +5,7 @@ const roleCheck = require('../middlewares/roleCheck');
 const empresaController = require('../controllers/superadmin/empresaController');
 const instanciaController = require('../controllers/superadmin/instanciaController');
 const temaController = require('../controllers/superadmin/temaController');
+const estatisticasController = require('../controllers/superadmin/estatisticasController');
 
 // Todas as rotas requerem autenticação e role super_admin
 router.use(auth);
@@ -31,6 +32,13 @@ router.get('/temas', temaController.listarTodos);
 router.get('/temas/instancia/:id', temaController.obterPorInstancia);
 router.put('/temas/instancia/:id', temaController.atualizarTemaInstancia);
 router.get('/temas/logs/:idInstancia', temaController.listarLogsPorInstancia);
+
+// Rotas de Estatísticas
+router.get('/estatisticas/geral', estatisticasController.obterGeral);
+router.get('/estatisticas/usuarios-online', estatisticasController.usuariosOnlinePorHora);
+router.get('/estatisticas/conversas', estatisticasController.conversasPorHora);
+router.get('/estatisticas/mensagens', estatisticasController.mensagensPorHora);
+router.get('/estatisticas/empresas', estatisticasController.detalheEmpresas);
 
 module.exports = router;
 

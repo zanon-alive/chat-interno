@@ -31,6 +31,12 @@ const routes = [
     meta: { requiresAuth: true, requiresRole: 'super_admin' }
   },
   {
+    path: '/superadmin/tema/:id',
+    name: 'SuperAdminTema',
+    component: () => import('../views/superadmin/TemaInstancia.vue'),
+    meta: { requiresAuth: true, requiresRole: 'super_admin' }
+  },
+  {
     path: '/admin',
     name: 'Admin',
     component: () => import('../views/admin/Dashboard.vue'),
