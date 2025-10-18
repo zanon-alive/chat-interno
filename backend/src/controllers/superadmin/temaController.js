@@ -64,7 +64,7 @@ class SuperAdminTemaController {
   async atualizarTemaInstancia(req, res) {
     try {
       const idInstancia = parseInt(req.params.id);
-      const usuarioId = req.usuario.id;
+      const usuarioId = req.user.id;
       const dadosTema = req.body;
 
       const tema = await temaService.atualizarTema(

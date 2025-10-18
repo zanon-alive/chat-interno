@@ -8,7 +8,7 @@ class TemaController {
    */
   async obter(req, res) {
     try {
-      const idInstancia = req.usuario.id_instancia_chat;
+      const idInstancia = req.user.id_instancia_chat;
 
       const tema = await temaService.obterTemaPorInstancia(idInstancia);
 
@@ -31,8 +31,8 @@ class TemaController {
    */
   async atualizar(req, res) {
     try {
-      const idInstancia = req.usuario.id_instancia_chat;
-      const usuarioId = req.usuario.id;
+      const idInstancia = req.user.id_instancia_chat;
+      const usuarioId = req.user.id;
       const dadosTema = req.body;
 
       // Validar cores (formato hexadecimal)
@@ -91,8 +91,8 @@ class TemaController {
    */
   async atualizarLogo(req, res) {
     try {
-      const idInstancia = req.usuario.id_instancia_chat;
-      const usuarioId = req.usuario.id;
+      const idInstancia = req.user.id_instancia_chat;
+      const usuarioId = req.user.id;
       const { logo_url, logo_width, logo_height } = req.body;
 
       if (!logo_url) {
@@ -131,8 +131,8 @@ class TemaController {
    */
   async resetar(req, res) {
     try {
-      const idInstancia = req.usuario.id_instancia_chat;
-      const usuarioId = req.usuario.id;
+      const idInstancia = req.user.id_instancia_chat;
+      const usuarioId = req.user.id;
 
       const tema = await temaService.resetarParaPadrao(idInstancia, usuarioId, req);
 
@@ -156,7 +156,7 @@ class TemaController {
    */
   async listarLogs(req, res) {
     try {
-      const idInstancia = req.usuario.id_instancia_chat;
+      const idInstancia = req.user.id_instancia_chat;
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 50;
       const offset = (page - 1) * limit;
@@ -182,7 +182,7 @@ class TemaController {
    */
   async preview(req, res) {
     try {
-      const idInstancia = req.usuario.id_instancia_chat;
+      const idInstancia = req.user.id_instancia_chat;
       const tema = await temaService.obterTemaPorInstancia(idInstancia);
 
       const cssVariables = {
