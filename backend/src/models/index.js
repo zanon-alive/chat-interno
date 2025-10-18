@@ -17,6 +17,8 @@ const Conversa = require('./Conversa')(sequelize, Sequelize.DataTypes);
 const ParticipanteConversa = require('./ParticipanteConversa')(sequelize, Sequelize.DataTypes);
 const Mensagem = require('./Mensagem')(sequelize, Sequelize.DataTypes);
 const PermissaoComunicacao = require('./PermissaoComunicacao')(sequelize, Sequelize.DataTypes);
+const TemaInstancia = require('./TemaInstancia')(sequelize, Sequelize.DataTypes);
+const TemaLog = require('./TemaLog')(sequelize, Sequelize.DataTypes);
 
 // Objeto com todos os models
 const db = {
@@ -28,6 +30,8 @@ const db = {
   ParticipanteConversa,
   Mensagem,
   PermissaoComunicacao,
+  TemaInstancia,
+  TemaLog,
   sequelize,
   Sequelize
 };

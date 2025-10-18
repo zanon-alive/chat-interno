@@ -6,6 +6,7 @@ const tenantValidation = require('../middlewares/tenantValidation');
 const equipeController = require('../controllers/admin/equipeController');
 const usuarioController = require('../controllers/admin/usuarioController');
 const usuarioWidgetController = require('../controllers/admin/usuarioWidgetController');
+const temaController = require('../controllers/admin/temaController');
 
 // Todas as rotas requerem autenticação, role admin_cliente e validação de tenant
 router.use(auth);
@@ -33,6 +34,14 @@ router.delete('/usuarios/:id', usuarioController.deletar);
 router.post('/usuarios/:id/gerar-token-widget', usuarioWidgetController.gerarToken);
 router.get('/usuarios/:id/token-widget', usuarioWidgetController.obterToken);
 router.delete('/usuarios/:id/token-widget', usuarioWidgetController.revogarToken);
+
+// Rotas de Tema (White-Label)
+router.get('/tema', temaController.obter);
+router.put('/tema', temaController.atualizar);
+router.put('/tema/logo', temaController.atualizarLogo);
+router.post('/tema/resetar', temaController.resetar);
+router.get('/tema/logs', temaController.listarLogs);
+router.get('/tema/preview', temaController.preview);
 
 module.exports = router;
 

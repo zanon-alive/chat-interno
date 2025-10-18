@@ -49,6 +49,12 @@ const routes = [
     meta: { requiresAuth: true, requiresRole: 'admin_cliente' }
   },
   {
+    path: '/admin/tema',
+    name: 'AdminTema',
+    component: () => import('../views/admin/Tema.vue'),
+    meta: { requiresAuth: true, requiresRole: 'admin_cliente' }
+  },
+  {
     path: '/chat',
     name: 'Chat',
     component: () => import('../views/chat/Chat.vue'),
