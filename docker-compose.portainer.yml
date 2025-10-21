@@ -1,0 +1,69 @@
+version: '3.9'
+
+services:
+  backend:
+    image: chat-interno-backend:latest
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      HOST: ${HOST:-0.0.0.0}
+      PORT: 3000
+      DB_DIALECT: ${DB_DIALECT:-sqlite}
+      DB_STORAGE: ${DB_STORAGE:-/app/data/database.sqlite}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+    volumes:
+      - backend_sqlite_data:/app/data
+      - backend_logs:/app/logs
+    networks:
+      - chat-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: unless-stopped
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  frontend:
+    image: chat-interno-frontend:latest
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    environment:
+      VITE_API_URL: ${VITE_API_URL}
+      VITE_SOCKET_URL: ${VITE_SOCKET_URL}
+    networks:
+      - chat-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: unless-stopped
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+volumes:
+  backend_sqlite_data:
+    driver: local
+  backend_logs:
+    driver: local
+
+networks:
+  chat-network:
+    driver: overlay
+
