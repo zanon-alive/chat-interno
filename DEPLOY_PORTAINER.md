@@ -122,7 +122,7 @@ services:
     deploy:
       replicas: 1
       restart_policy:
-        condition: unless-stopped
+        condition: any
         delay: 5s
         max_attempts: 3
 
@@ -135,7 +135,7 @@ services:
     deploy:
       replicas: 1
       restart_policy:
-        condition: unless-stopped
+        condition: any
         delay: 5s
         max_attempts: 3
 
@@ -196,6 +196,24 @@ CORS_ORIGIN=http://seu-servidor:8080,http://seu-dominio.com
 1. Acesse o frontend
 2. Tente fazer login com usuário de teste
 3. Verifique se o chat carrega
+
+---
+
+## ⚠️ Importante: Restart Policy no Docker Swarm
+
+O Docker Swarm (usado pelo Portainer) **NÃO suporta** `restart: unless-stopped`.
+
+**Opções válidas:**
+- `condition: any` - Sempre reinicia (recomendado)
+- `condition: on-failure` - Reinicia apenas em caso de erro
+- `condition: none` - Nunca reinicia
+
+**Erro comum:**
+```
+❌ invalid RestartCondition: "unless-stopped"
+```
+
+**Solução:** Use `condition: any` no `docker-compose.portainer.yml`.
 
 ---
 
