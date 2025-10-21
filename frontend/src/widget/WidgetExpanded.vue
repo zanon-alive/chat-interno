@@ -16,7 +16,7 @@
       <div class="header-actions">
         <button 
           v-if="!conversaSelecionada && !isOffline && !isConnecting"
-          @click="showNovaConversa = true" 
+          @click="abrirNovaConversa" 
           class="btn-action" 
           title="Nova Conversa"
         >
@@ -87,20 +87,22 @@
       </div>
     </div>
     
-    <!-- Modal Nova Conversa -->
-    <NovaConversaModal 
-      v-if="showNovaConversa"
-      :model-value="showNovaConversa"
-      @update:model-value="showNovaConversa = $event"
-      @criado="handleConversaCriada"
-    />
+    <!-- Modal Nova Conversa Widget -->
+    <Teleport to="body">
+      <NovaConversaWidget 
+        v-if="showNovaConversa"
+        :model-value="showNovaConversa"
+        @update:model-value="showNovaConversa = $event"
+        @conversa-criada="handleConversaCriada"
+      />
+    </Teleport>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
 import WidgetChat from './WidgetChat.vue';
-import NovaConversaModal from '../components/chat/NovaConversaModal.vue';
+import NovaConversaWidget from './NovaConversaWidget.vue';
 
 const props = defineProps({
   position: {
@@ -175,11 +177,13 @@ function getNomeConversa(conversa) {
   return outros?.[0]?.nome_completo || 'Conversa';
 }
 
+function abrirNovaConversa() {
+  showNovaConversa.value = true;
+}
+
 async function handleConversaCriada(conversa) {
   showNovaConversa.value = false;
-  // Emitir para o componente pai atualizar lista
   emit('nova-conversa', conversa);
-  // Selecionar a nova conversa
   conversaSelecionada.value = conversa;
 }
 </script>

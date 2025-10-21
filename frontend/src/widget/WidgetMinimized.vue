@@ -79,6 +79,10 @@ const props = defineProps({
   isConnecting: {
     type: Boolean,
     default: false
+  },
+  userId: {
+    type: Number,
+    default: null
   }
 });
 
@@ -104,8 +108,10 @@ const nomesResumidos = computed(() => {
 function getNomeConversa(conversa) {
   if (conversa.nome_conversa) return conversa.nome_conversa;
   
-  // Para 1-on-1, pegar nome do outro participante
-  const outros = conversa.participantes?.filter(p => !p.is_current_user);
+  // Para 1-on-1, pegar nome do OUTRO participante (não o usuário logado)
+  if (!props.userId) return 'Conversa';
+  
+  const outros = conversa.participantes?.filter(p => p.id !== props.userId);
   return outros?.[0]?.nome_completo || 'Conversa';
 }
 

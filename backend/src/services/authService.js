@@ -3,6 +3,7 @@ const { Usuario } = require('../models');
 const authConfig = require('../config/auth');
 const logger = require('../utils/logger');
 const { AppError } = require('../middlewares/errorHandler');
+const temaService = require('./temaService');
 
 class AuthService {
   /**
@@ -49,9 +50,21 @@ class AuthService {
       nivel: usuario.nivel_permissao
     });
 
+    // Buscar tema da instância
+    let tema = null;
+    try {
+      if (usuario.id_instancia_chat) {
+        tema = await temaService.obterTemaPorInstancia(usuario.id_instancia_chat);
+      }
+    } catch (error) {
+      logger.warn('Erro ao buscar tema na autenticação:', error);
+      // Não bloqueia o login se houver erro ao buscar tema
+    }
+
     return {
       token,
       usuario: usuario.toJSON(),
+      tema: tema ? tema.toJSON() : null,
       forcar_troca_senha: usuario.forcar_troca_senha
     };
   }
@@ -68,7 +81,20 @@ class AuthService {
       throw new AppError('Usuário não encontrado', 404);
     }
 
-    return usuario.toJSON();
+    // Buscar tema da instância
+    let tema = null;
+    try {
+      if (usuario.id_instancia_chat) {
+        tema = await temaService.obterTemaPorInstancia(usuario.id_instancia_chat);
+      }
+    } catch (error) {
+      logger.warn('Erro ao buscar tema no me():', error);
+    }
+
+    return {
+      ...usuario.toJSON(),
+      tema: tema ? tema.toJSON() : null
+    };
   }
 
   /**

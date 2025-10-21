@@ -114,6 +114,33 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 'ativo',
       allowNull: false
     },
+    
+    // Token para widget embarcável
+    widget_token: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      unique: true,
+      comment: 'Token JWT permanente para uso em widget'
+    },
+    
+    widget_token_expira_em: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'Data de expiração (null = nunca expira)'
+    },
+    
+    widget_token_sempre_valido: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
+      comment: 'Se true, token nunca expira'
+    },
+    
+    widget_token_gerado_em: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'Data de geração do token'
+    },
     ultimo_acesso: {
       type: DataTypes.DATE,
       allowNull: true

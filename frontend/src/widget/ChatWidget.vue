@@ -22,6 +22,7 @@
       :is-offline="isOffline"
       :offline-message="offlineMessage"
       :is-connecting="isConnecting"
+      :user-id="userId"
       @expand="expand"
     />
   </div>
@@ -89,6 +90,28 @@ function close() {
   emit('close');
 }
 
+// Aplicar tema no widget
+function aplicarTema(tema) {
+  if (!tema) return;
+  
+  const widgetContainer = document.querySelector('.chat-widget-container');
+  if (!widgetContainer) return;
+  
+  // Aplicar CSS variables no container do widget
+  widgetContainer.style.setProperty('--cor-primaria', tema.cor_primaria || '#667eea');
+  widgetContainer.style.setProperty('--cor-primaria-hover', tema.cor_primaria_hover || '#5568d3');
+  widgetContainer.style.setProperty('--cor-secundaria', tema.cor_secundaria || '#764ba2');
+  widgetContainer.style.setProperty('--cor-fundo', tema.cor_fundo || '#f7fafc');
+  widgetContainer.style.setProperty('--cor-fundo-secundario', tema.cor_fundo_secundario || '#ffffff');
+  widgetContainer.style.setProperty('--cor-texto-primaria', tema.cor_texto_primaria || '#2d3748');
+  widgetContainer.style.setProperty('--cor-texto-secundaria', tema.cor_texto_secundaria || '#718096');
+  widgetContainer.style.setProperty('--cor-mensagem-enviada', tema.cor_mensagem_enviada || '#667eea');
+  widgetContainer.style.setProperty('--cor-mensagem-recebida', tema.cor_mensagem_recebida || '#e2e8f0');
+  widgetContainer.style.setProperty('--border-radius', `${tema.border_radius || 8}px`);
+  
+  console.log('🎨 Widget: Tema aplicado');
+}
+
 async function init() {
   try {
     isConnecting.value = true;
@@ -107,13 +130,18 @@ async function init() {
       // Continuar mesmo sem Socket.IO
     }
     
-    // Decodificar token para obter userId
+    // Decodificar token para obter userId e tema
     try {
       const tokenParts = props.token.split('.');
       if (tokenParts.length === 3) {
         const payload = JSON.parse(atob(tokenParts[1]));
         userId.value = payload.userId || payload.id;
         console.log('👤 Widget: User ID:', userId.value);
+        
+        // Se o token contiver tema, aplicar
+        if (payload.tema) {
+          aplicarTema(payload.tema);
+        }
       }
     } catch (e) {
       console.warn('⚠️ Não foi possível decodificar token:', e);

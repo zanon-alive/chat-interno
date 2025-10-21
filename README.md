@@ -50,30 +50,45 @@ Desenvolver uma plataforma de comunicação interna que permite:
 
 ## 📚 Documentação
 
-A documentação completa do projeto está organizada em ordem de leitura:
+> **📖 [ÍNDICE COMPLETO DA DOCUMENTAÇÃO](.docs/INDEX.md)** - Navegue por toda a documentação organizada
 
-### **Documentos Principais (Raiz):**
-1. **[01-START_HERE.md](./01-START_HERE.md)** ⭐ - Comece aqui! (5 min)
-2. **[02-COMO_RODAR.md](./02-COMO_RODAR.md)** - Instruções passo a passo (10 min)
-3. **[03-ENTREGA_FINAL.md](./03-ENTREGA_FINAL.md)** - Documento de entrega
-4. **[04-DESENVOLVIMENTO_COMPLETO.md](./04-DESENVOLVIMENTO_COMPLETO.md)** - Relatório técnico
-5. **[05-MELHORIAS_IMPLEMENTADAS.md](./05-MELHORIAS_IMPLEMENTADAS.md)** - Melhorias recentes
-6. **[06-RELATORIO_COMPLETO_FINAL.md](./06-RELATORIO_COMPLETO_FINAL.md)** - Relatório consolidado
-7. **[07-RESUMO_DESENVOLVIMENTO.md](./07-RESUMO_DESENVOLVIMENTO.md)** - Resumo técnico
-8. **[08-PROGRESSO.md](./08-PROGRESSO.md)** - Status por fase
-9. **[09-DECISOES_TECNICAS.md](./09-DECISOES_TECNICAS.md)** - Decisões e revisões
-10. **[10-CHECKLIST_PROJETO.md](./10-CHECKLIST_PROJETO.md)** - Checklist completo
+A documentação está organizada em **7 categorias** para facilitar a navegação:
 
-### **Documentos Técnicos (docs/):**
-- **[REQUISITOS.md](./docs/REQUISITOS.md)** - Requisitos funcionais e não funcionais
-- **[ARQUITETURA.md](./docs/ARQUITETURA.md)** - Arquitetura do sistema
-- **[MODELO_DADOS.md](./docs/MODELO_DADOS.md)** - Estrutura do banco de dados
-- **[FASES_DESENVOLVIMENTO.md](./docs/FASES_DESENVOLVIMENTO.md)** - Planejamento
-- **[GUIA_DESENVOLVIMENTO.md](./docs/GUIA_DESENVOLVIMENTO.md)** - Manual do desenvolvedor
+### 🚀 Início Rápido
+- **[🚀 COMECE AQUI](.docs/01-inicio/🚀_COMECE_AQUI.md)** ⭐ - **START HERE!** (5 min)
+- **[Como Rodar](.docs/01-inicio/02-COMO_RODAR.md)** - Setup completo (10 min)
+
+### 🔌 Widget Embarcável
+- **[Guia de Integração](.docs/03-widget/WIDGET_INTEGRATION.md)** - Como integrar o widget
+- **[Gerar Token](.docs/03-widget/GERAR_TOKEN.md)** - Autenticação do widget
+- **[Exemplo Prático](.docs/07-scripts/exemplo-dashboard.html)** - Dashboard de exemplo
+
+### 🏗️ Arquitetura e Desenvolvimento
+- **[Arquitetura do Sistema](.docs/02-arquitetura/ARQUITETURA.md)** - Visão técnica completa
+- **[Modelo de Dados](.docs/02-arquitetura/MODELO_DADOS.md)** - Estrutura do banco
+- **[Decisões Técnicas](.docs/05-desenvolvimento/09-DECISOES_TECNICAS.md)** - ADRs
+
+### 📊 Relatórios e Entregas
+- **[Entrega v1.4](.docs/06-entregas/15-ENTREGA_FINAL_v1.4.md)** - Última versão
+- **[Resumo Final](.docs/06-entregas/RESUMO_FINAL_v1.4.txt)** - Quick overview
+
+### 📁 Estrutura Completa
+```
+.docs/
+├── 01-inicio/          # Guias de quick start e setup
+├── 02-arquitetura/     # Documentação técnica
+├── 03-widget/          # Widget embarcável
+├── 04-features/        # Funcionalidades específicas
+├── 05-desenvolvimento/ # Processo e decisões
+├── 06-entregas/        # Relatórios de versões
+└── 07-scripts/         # Scripts e exemplos
+```
+
+**👉 Veja o [ÍNDICE COMPLETO](.docs/INDEX.md) para navegação detalhada**
 
 ## 🚀 Quick Start
 
-**📖 Guia Completo:** [02-COMO_RODAR.md](./02-COMO_RODAR.md)
+**📖 Guia Completo:** [02-COMO_RODAR.md](.docs/01-inicio/02-COMO_RODAR.md)
 
 ### **🎨 Novo: Widget Embarcável**
 
@@ -91,15 +106,14 @@ Integre o chat em sistemas legados com apenas 2 linhas:
 
 **🧪 Testar Widget:**
 ```bash
-./testar-widget.sh
-# Ou: bash testar-widget.sh
+.docs/07-scripts/testar-widget.sh
 # Abrirá: http://localhost:8080/exemplo-dashboard.html
 ```
 
 **📖 Documentação:** 
-- [WIDGET_INTEGRATION.md](./WIDGET_INTEGRATION.md) - Guia de integração
-- [TESTE_WIDGET.md](./TESTE_WIDGET.md) - Guia de testes
-- [13-WIDGET_EMBARCAVEL.md](./13-WIDGET_EMBARCAVEL.md) - Documentação técnica
+- [WIDGET_INTEGRATION.md](.docs/03-widget/WIDGET_INTEGRATION.md) - Guia de integração
+- [TESTE_WIDGET.md](.docs/03-widget/TESTE_WIDGET.md) - Guia de testes
+- [GERAR_TOKEN.md](.docs/03-widget/GERAR_TOKEN.md) - Como gerar tokens
 
 ### Instalação Rápida (5 minutos)
 
@@ -159,10 +173,18 @@ chat-interno/
 │   │   ├── router/      # Rotas
 │   │   ├── services/    # Serviços de API
 │   │   ├── composables/ # Composables Vue
+│   │   ├── widget/      # Widget embarcável
 │   │   └── utils/       # Utilitários
 │   └── public/         # Arquivos estáticos
 │
-└── docs/               # Documentação completa
+└── .docs/              # Documentação organizada
+    ├── 01-inicio/          # Guias de setup
+    ├── 02-arquitetura/     # Docs técnicos
+    ├── 03-widget/          # Widget embarcável
+    ├── 04-features/        # Funcionalidades
+    ├── 05-desenvolvimento/ # Processo de dev
+    ├── 06-entregas/        # Relatórios
+    └── 07-scripts/         # Scripts auxiliares
 ```
 
 ## 🔐 Segurança
